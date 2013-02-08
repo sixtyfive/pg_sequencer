@@ -20,7 +20,7 @@ module PgSequencer
       end
 
       def sequence_exists?(name)
-        1 == select_value(exists_sequence_sql(name))
+        1 == select_value(exists_sequence_sql(name)).to_i
       end
 
       # CREATE [ TEMPORARY | TEMP ] SEQUENCE name [ INCREMENT [ BY ] increment ]
