@@ -50,7 +50,7 @@ module PgSequencer
       end
 
       def exists_sequence_sql(name)
-        "SELECT COUNT(*) FROM pg_class WHERE relkind = 'S' AND oid::regclass::text = ''#{name}'"
+        "SELECT COUNT(*) FROM pg_class WHERE relkind = 'S' AND oid::regclass::text = '#{name}'"
       end
 
       def sequence_options_sql(options = {})
