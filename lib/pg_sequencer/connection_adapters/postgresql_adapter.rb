@@ -6,7 +6,9 @@ module PgSequencer
     
     module PostgreSQLAdapter
       def create_sequence(name, options = {})
-        execute create_sequence_sql(name, options)
+        unless sequence_exists?(name)
+          execute create_sequence_sql(name, options)
+        end
       end
       
       def drop_sequence(name)
@@ -16,7 +18,11 @@ module PgSequencer
       def change_sequence(name, options = {})
         execute change_sequence_sql(name, options)
       end
-      
+
+      def sequence_exists?(name)
+        1 == select_value(exists_sequence_sql(name))
+      end
+
       # CREATE [ TEMPORARY | TEMP ] SEQUENCE name [ INCREMENT [ BY ] increment ]
       #     [ MINVALUE minvalue | NO MINVALUE ] [ MAXVALUE maxvalue | NO MAXVALUE ]
       #     [ START [ WITH ] start ] [ CACHE cache ] [ [ NO ] CYCLE ]
@@ -42,7 +48,11 @@ module PgSequencer
         options.delete(:start)
         "ALTER SEQUENCE #{name}#{sequence_options_sql(options)}"
       end
-      
+
+      def exists_sequence_sql(name)
+        "SELECT COUNT(*) FROM pg_class WHERE relkind = 'S' AND oid::regclass::text = ''#{name}'"
+      end
+
       def sequence_options_sql(options = {})
         sql = ""
         sql << increment_option_sql(options)  if options[:increment] or options[:increment_by]
