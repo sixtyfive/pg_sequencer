@@ -4,7 +4,7 @@ require 'pg_sequencer/connection_adapters/postgresql_adapter'
 class PostgreSQLAdapterTest < ActiveSupport::TestCase
   include PgSequencer::ConnectionAdapters::PostgreSQLAdapter
   
-  setup do
+  def setup
     @options = {
       :increment => 1,
       :min       => 1,
@@ -134,5 +134,17 @@ class PostgreSQLAdapterTest < ActiveSupport::TestCase
       assert_equal("DROP SEQUENCE seq_items", drop_sequence_sql('seq_items'))
     end
   end # dropping sequences
-  
+
+  context "existing sequences" do
+    should "generate the proper SQL" do
+      assert_equal("SELECT COUNT(*) = 1 as exists FROM pg_class WHERE relkind = 'S' AND oid::regclass::text = 'seq_items'",
+                   exists_sequence_sql('seq_items'))
+    end
+  end # checking sequence existence
+
+  context "sequence values" do
+    should "generate the proper SQL" do
+      assert_equal("SELECT NEXTVAL('seq_items')", nextval_sequence_sql('seq_items'))
+    end
+  end # next sequence value
 end

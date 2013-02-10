@@ -20,7 +20,11 @@ module PgSequencer
       end
 
       def sequence_exists?(name)
-        1 == select_value(exists_sequence_sql(name)).to_i
+        't' == select_value(exists_sequence_sql(name))
+      end
+
+      def sequence_value(name)
+        select_value(nextval_sequence_sql(name)).to_i
       end
 
       # CREATE [ TEMPORARY | TEMP ] SEQUENCE name [ INCREMENT [ BY ] increment ]
@@ -50,11 +54,16 @@ module PgSequencer
       end
 
       def exists_sequence_sql(name)
-        "SELECT COUNT(*) FROM pg_class WHERE relkind = 'S' AND oid::regclass::text = '#{name}'"
+        "SELECT COUNT(*) = 1 as exists FROM pg_class WHERE relkind = 'S' AND oid::regclass::text = '#{name}'"
+      end
+
+      def nextval_sequence_sql(name)
+        "SELECT NEXTVAL('#{name}')"
       end
 
       def sequence_options_sql(options = {})
         sql = ""
+        #puts "Options: #{options.inspect}"
         sql << increment_option_sql(options)  if options[:increment] or options[:increment_by]
         sql << min_option_sql(options)
         sql << max_option_sql(options)

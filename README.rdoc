@@ -20,8 +20,11 @@ pg_sequencer adds the following methods to migrations:
 * create_sequence(sequence_name, options)
 * change_sequence(sequence_name, options)
 * drop_sequence(sequence_name)
+* sequence_exists?(sequence_name)
+* sequence_value(sequence_name)
 
-The methods closely mimic the syntax of the PostgreSQL SQL for CREATE SEQUENCE, DROP SEQUENCE and ALTER SEQUENCE. See the REFERENCES section below for more information.
+The methods closely mimic the manipulation syntax of the PostgreSQL SQL for CREATE SEQUENCE, DROP SEQUENCE and
+ALTER SEQUENCE. The existence check scans pg_class, and fetching the next value uses NEXTVAL. See the REFERENCES section below for more information.
 
 == Options
 
@@ -40,7 +43,7 @@ change_sequence will look for :restart or :restart_with.
 
 === Creating a sequence
 
-Create a sequence called "seq_user", incrementing by 1, min of 1, max of 2000000, starts at 1, caches 10 values, and disallows cycles:
+If it doesn't already exist, create a sequence called "seq_user", incrementing by 1, min of 1, max of 2000000, starts at 1, caches 10 values, and disallows cycles:
 
   create_sequence("seq_user", {
     :increment => 1,
@@ -51,7 +54,7 @@ Create a sequence called "seq_user", incrementing by 1, min of 1, max of 2000000
     :cycle => false
   })
   
-This is equivalent of the following query:
+This is equivalent to:
 
   CREATE SEQUENCE seq_user INCREMENT BY 1 MIN 1 MAX 2000000 START 1 CACHE 10 NO CYCLE
 
@@ -66,6 +69,12 @@ This is equivalent to:
 === Removing a sequence:
 
   drop_sequence "seq_products"
+
+=== Only remove a sequence if it exists and has a value > 1000
+
+  unless sequence_exists?("seq_products") && sequence_value("seq_products") > 1000
+    drop_sequence "seq_products"
+  end
 
 == Caveats / Bugs
 * Tested with postgres 9.0.4, should work down to 8.1.
