@@ -1,3 +1,9 @@
+  require "pg_sequencer/connection_adapters/postgresql_adapter"
+  
+  ActiveRecord::Schema.class_eval do
+    include PgSequencer::ConnectionAdapters::PostgreSQLAdapter
+  end
+
 module PgSequencer
   class Railtie < Rails::Railtie
     initializer "pg_sequencer.load_adapter" do
