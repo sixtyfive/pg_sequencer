@@ -73,6 +73,27 @@ This is equivalent to:
 * The "SET SCHEMA" fragment of the ALTER command is not implemented.
 * Oracle/other databases not supported
 * Other unknown bugs :)
+
+== Testing
+There are some unit tests in place, implemented using [test-unit](https://github.com/test-unit/test-unit).
+
+To run the testsuite:
+
+  rake test
+
+And you should see something like:
+
+  ...
+  Loaded suite ...
+  Started
+  ......................
+
+  Finished in 0.005055 seconds.
+  ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  22 tests, 33 assertions, 0 failures, 0 errors, 0 pendings, 0 omissions, 0 notifications
+  100% passed
+  ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  4352.13 tests/s, 6528.19 assertions/s
   
 == References
 * http://www.postgresql.org/docs/8.1/static/sql-createsequence.html
