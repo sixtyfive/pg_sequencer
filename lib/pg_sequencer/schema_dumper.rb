@@ -2,7 +2,7 @@ module PgSequencer
   module SchemaDumper
     extend ActiveSupport::Concern
 
-    def tables_with_sequences(stream)
+    def tables(stream)
       super
       sequences
     end
