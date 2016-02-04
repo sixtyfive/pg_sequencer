@@ -1,5 +1,7 @@
 = pg_sequencer
 
+{<img src="https://travis-ci.org/charitywater/pg_sequencer.svg?branch=master" alt="Build Status" />}[https://travis-ci.org/charitywater/pg_sequencer]
+
 pg_sequencer adds methods to your migrations to allow you to create, drop and change sequence objects in PostgreSQL. It also dumps sequences to schema.rb.
 
 This is especially useful if you are connecting to a legacy database where the primary key field is declared as an INTEGER and a sequence is queried for the value of the next record.
