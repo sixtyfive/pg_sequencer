@@ -49,7 +49,7 @@ class SchemaDumperTest < Test::Unit::TestCase
       stream.puts '# Fake Schema Trailer'
     end
 
-    include PgSequencer::SchemaDumper
+    prepend PgSequencer::SchemaDumper
   end
 
   context "dumping the schema" do
