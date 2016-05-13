@@ -91,6 +91,7 @@ module PgSequencer
           SELECT seq.relname FROM pg_class AS seq
           JOIN pg_namespace ns ON (seq.relnamespace=ns.oid)
           WHERE seq.relkind = 'S' AND NOT EXISTS (SELECT * FROM pg_depend WHERE objid=seq.oid AND deptype='a')
+          #{schema_clause}
           AND pg_table_is_visible(seq.oid) ORDER BY seq.relname;
         SQL
         all_sequences = []
@@ -154,6 +155,11 @@ module PgSequencer
         end
       end
 
+      def schema_clause
+        custom_schema_name = ActiveRecord::Base.configurations[environment]['schema_name']
+        "AND ns.nspname = '#{custom_schema_name}'" if custom_schema_name.present?
+      end
+      
     end
   end
 end
