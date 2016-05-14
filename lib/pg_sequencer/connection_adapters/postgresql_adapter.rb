@@ -28,8 +28,8 @@ module PgSequencer
         execute create_sequence_sql(name, options)
       end
 
-      def drop_sequence(name)
-        execute drop_sequence_sql(name)
+      def drop_sequence(name, options = {})
+        execute drop_sequence_sql(name, options.delete(:if_exists))
       end
 
       def change_sequence(name, options = {})
@@ -48,12 +48,13 @@ module PgSequencer
       #   :cache     => 5,
       #   :cycle     => true
       def create_sequence_sql(name, options = {})
+        drop_sequence(name, {if_exists: true}) if options.delete(:force)
         options.delete(:restart)
         "CREATE SEQUENCE #{name}#{sequence_options_sql(options)}"
       end
 
-      def drop_sequence_sql(name)
-        "DROP SEQUENCE #{name}"
+      def drop_sequence_sql(name, if_exists)
+        "DROP SEQUENCE #{if_exists ? 'IF EXISTS ' : ''}#{name}"
       end
 
       def change_sequence_sql(name, options = {})

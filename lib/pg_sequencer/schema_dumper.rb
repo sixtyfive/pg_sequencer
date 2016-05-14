@@ -40,6 +40,7 @@ module PgSequencer
         statement_parts << (':start => ' + sequence.options[:start].inspect)
         statement_parts << (':cache => ' + sequence.options[:cache].inspect)
         statement_parts << (':cycle => ' + sequence.options[:cycle].inspect)
+        statement_parts << (':force => true')
 
         '  ' + statement_parts.join(', ')
       end
