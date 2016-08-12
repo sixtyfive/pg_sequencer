@@ -28,7 +28,7 @@ module PgSequencer
         end
 
         ActiveRecord::SchemaDumper.class_eval do
-          include PgSequencer::SchemaDumper
+          prepend PgSequencer::SchemaDumper
         end
 
       end
