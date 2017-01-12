@@ -26,8 +26,8 @@ module PgSequencer
     end
 
     def tables_with_sequences(stream)
-      tables_without_sequences(stream)
       sequences(stream)
+      tables_without_sequences(stream)
     end
 
     private
