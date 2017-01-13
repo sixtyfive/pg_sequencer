@@ -88,10 +88,10 @@ module PgSequencer
         # is_cycled     | f
         # is_called     | t
         sequence_names = select_all(<<-SQL).map { |row| row['relname'] }
-          SELECT seq.relname FROM pg_class AS seq
-          JOIN pg_namespace ns ON (seq.relnamespace=ns.oid)
-          WHERE seq.relkind = 'S' AND NOT EXISTS (SELECT * FROM pg_depend WHERE objid=seq.oid AND deptype='a')
-          AND pg_table_is_visible(seq.oid) ORDER BY seq.relname;
+          SELECT c.relname FROM pg_class c
+          WHERE c.relkind = 'S' AND
+              c.relname NOT LIKE '%_id_seq'
+          ORDER BY c.relname asc;
         SQL
         all_sequences = []
 
