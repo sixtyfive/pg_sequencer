@@ -22,8 +22,8 @@ module PgSequencer
     extend ActiveSupport::Concern
 
     def tables(stream)
-      super(stream)
       sequences(stream)
+      super(stream)
     end
 
     private
