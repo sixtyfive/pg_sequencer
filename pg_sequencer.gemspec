@@ -1,12 +1,12 @@
 $:.push File.expand_path("../lib", __FILE__)
 
 # Maintain your gem's version:
-require "pg_sequencer/version"
+# require "pg_sequencer/version"
 
 # Describe your gem and declare its dependencies:
 Gem::Specification.new do |s|
   s.name        = "pg_sequencer"
-  s.version     = PgSequencer::VERSION
+  s.version     = "0.0.2"
   s.authors     = ["Tony Collen"]
   s.email       = ["tonyc@code42.com"]
   s.homepage    = "https://github.com/code42/pg_sequencer/"
