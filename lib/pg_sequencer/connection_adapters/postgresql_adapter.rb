@@ -87,7 +87,18 @@ module PgSequencer
         # log_cnt       | 26
         # is_cycled     | f
         # is_called     | t
-        sequence_names = select_all("SELECT c.relname FROM pg_class c WHERE c.relkind = 'S' order by c.relname asc").map { |row| row['relname'] }
+
+        all_sequences_sql = <<-SQL
+SELECT c.relname
+
+FROM pg_class c
+
+WHERE c.relkind = 'S' AND c.relname NOT LIKE '%_id_seq'
+
+ORDER BY c.relname ASC
+        SQL
+
+        sequence_names = select_all(all_sequences_sql).map { |row| row['relname'] }
 
         all_sequences = []
 

@@ -13,6 +13,19 @@ Add this to your Gemfile:
 
   gem 'pg_sequencer'
 
+== Usage with Ruby on Rails
+
+This version have changes to solve issue with rails\s `schema.rb`.
+
+The issue is `create_table` creates sequence for promary key.
+
+pg_sequencer dumps all sequences, so, `rake db:schema:load` not works now
+because we apply `create_table` sequences twice:
+* when table creates
+* when load sequence dumped by `pg_sequencer`
+
+The temparary solutions is exlude all sequences ends with `_id_seq`
+
 == API
 
 pg_sequencer adds the following methods to migrations:
