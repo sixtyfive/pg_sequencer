@@ -24,7 +24,7 @@ because we apply `create_table` sequences twice:
 * when table creates
 * when load sequence dumped by `pg_sequencer`
 
-The temparary solutions is exlude all sequences ends with `_id_seq`
+The temparary solutions is exclude all sequences ends with `_id_seq`
 
 == API
 
