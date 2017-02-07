@@ -15,9 +15,9 @@ Add this to your Gemfile:
 
 == Usage with Ruby on Rails
 
-This version have changes to solve issue with rails\s `schema.rb`.
+This version have changes to solve issue with rails's `schema.rb`.
 
-The issue is `create_table` creates sequence for promary key.
+The issue is `create_table` creates sequence for primary key.
 
 pg_sequencer dumps all sequences, so, `rake db:schema:load` not works now
 because we apply `create_table` sequences twice:
