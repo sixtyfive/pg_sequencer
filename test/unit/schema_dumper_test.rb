@@ -76,6 +76,7 @@ class SchemaDumperTest < ActiveSupport::TestCase
         increment: 1,
         min:           1,
         max:          2_000_000,
+        start:         1,
         cache:       5,
         cycle:         true
       }
