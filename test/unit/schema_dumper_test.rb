@@ -73,12 +73,11 @@ class SchemaDumperTest < ActiveSupport::TestCase
   context "dumping the schema" do
     setup do
       @options = {
-        :increment => 1,
-        :min       => 1,
-        :max       => 2_000_000,
-        :start     => 1,
-        :cache     => 5,
-        :cycle     => true
+        increment: 1,
+        min:           1,
+        max:          2_000_000,
+        cache:       5,
+        cycle:         true
       }
 
       @stream = MockStream.new
@@ -107,7 +106,7 @@ SCHEMAEND
     context "when min specified as false" do
       setup do
         sequences = ['seq_t_user', 'seq_t_item'].map do |name|
-          SequenceDefinition.new(name, @options.merge(:min => false))
+          SequenceDefinition.new(name, @options.merge(min: false))
         end
         @conn = MockConnection.new(sequences)
       end

@@ -43,12 +43,12 @@ change_sequence will look for :restart or :restart_with.
 Create a sequence called "seq_user", incrementing by 1, min of 1, max of 2000000, starts at 1, caches 10 values, and disallows cycles:
 
   create_sequence("seq_user", {
-    :increment => 1,
-    :min => 1,
-    :max => 2000000,
-    :start => 1,
-    :cache => 10,
-    :cycle => false
+    increment: 1,
+    min: 1,
+    max: 2000000,
+    start: 1,
+    cache: 10,
+    cycle: false
   })
 
 This is equivalent of the following query:
@@ -57,7 +57,7 @@ This is equivalent of the following query:
 
 === Reset a sequence's value:
 
-  change_sequence "seq_accounts", :restart_with => 50
+  change_sequence "seq_accounts", restart_with: 50
 
 This is equivalent to:
 

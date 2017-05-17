@@ -101,12 +101,12 @@ module PgSequencer
           row = select_one("SELECT * FROM #{sequence_name}")
 
           options = {
-            :increment => row['increment_by'].to_i,
-            :min       => row['min_value'].to_i,
-            :max       => row['max_value'].to_i,
-            :start     => row['start_value'].to_i,
-            :cache     => row['cache_value'].to_i,
-            :cycle     => row['is_cycled'] == 't'
+            increment: row['increment_by'].to_i,
+            min:           row['min_value'].to_i,
+            max:          row['max_value'].to_i,
+            start:          row['start_value'].to_i,
+            cache:       row['cache_value'].to_i,
+            cycle:        row['is_cycled'] == 't'
           }
 
           all_sequences << SequenceDefinition.new(sequence_name, options)
