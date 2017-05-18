@@ -21,7 +21,12 @@ require 'helper'
 
 class SchemaDumperTest < ActiveSupport::TestCase
 
-  class SequenceDefinition < Struct.new(:name, :options); end
+  class SequenceDefinition
+    def initialize(name, opts)
+      @name = name
+      @oprions = opts
+    end
+  end
 
   class MockConnection
     attr_accessor :sequences
@@ -67,8 +72,8 @@ class SchemaDumperTest < ActiveSupport::TestCase
       stream.puts '# Fake Schema Trailer'
     end
 
-    include PgSequencer::SchemaDumper
   end
+  MockSchemaDumper.prepend(PgSequencer::SchemaDumper)
 
   context "dumping the schema" do
     setup do

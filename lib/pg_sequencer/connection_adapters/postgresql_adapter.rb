@@ -20,7 +20,11 @@
 module PgSequencer
   module ConnectionAdapters
 
-    class SequenceDefinition < Struct.new(:name, :options)
+    class SequenceDefinition
+      def initialize(name, opts)
+        @name = name
+        @oprions = opts
+      end
     end
 
     module PostgreSQLAdapter
@@ -160,7 +164,7 @@ module PgSequencer
         custom_schema_name = ActiveRecord::Base.configurations[environment]['schema_name']
         "AND ns.nspname = '#{custom_schema_name}'" if custom_schema_name.present?
       end
-      
+
     end
   end
 end

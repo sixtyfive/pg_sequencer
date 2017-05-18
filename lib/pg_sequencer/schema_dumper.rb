@@ -21,12 +21,8 @@ module PgSequencer
   module SchemaDumper
     extend ActiveSupport::Concern
 
-    included do
-      alias_method :tables, :sequences
-    end
-
-    def tables_with_sequences(stream)
-      tables_without_sequences(stream)
+    def tables(stream)
+      super(stream)
       sequences(stream)
     end
 
@@ -50,3 +46,4 @@ module PgSequencer
     end
   end
 end
+ActiveRecord::SchemaDumper.prepend(PgSequencer::SchemaDumper)
