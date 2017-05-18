@@ -27,11 +27,7 @@ module PgSequencer
           include PgSequencer::ConnectionAdapters::PostgreSQLAdapter
         end
 
-        # ActiveRecord::SchemaDumper.class_eval do
-        #   include PgSequencer::SchemaDumper
-        # end
         ActiveRecord::SchemaDumper.prepend(PgSequencer::SchemaDumper)
-
       end
 
   #     if defined?(ActiveRecord::Migration::CommandRecorder)

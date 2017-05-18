@@ -46,4 +46,3 @@ module PgSequencer
     end
   end
 end
-ActiveRecord::SchemaDumper.prepend(PgSequencer::SchemaDumper)
