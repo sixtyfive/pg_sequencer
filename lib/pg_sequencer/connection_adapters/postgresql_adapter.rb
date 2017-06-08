@@ -21,9 +21,10 @@ module PgSequencer
   module ConnectionAdapters
 
     class SequenceDefinition
+      attr_accessor :name, :options
       def initialize(name, opts)
         @name = name
-        @oprions = opts
+        @options = opts
       end
     end
 
