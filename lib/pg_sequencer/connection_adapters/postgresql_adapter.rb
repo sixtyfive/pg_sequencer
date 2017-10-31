@@ -75,42 +75,7 @@ module PgSequencer
       end
 
       def sequences
-        # sequence_temp=# select * from temp;
-        # -[ RECORD 1 ]-+--------------------
-        # sequence_name | temp
-        # last_value    | 7
-        # start_value   | 1
-        # increment_by  | 1
-        # max_value     | 9223372036854775807
-        # min_value     | 1
-        # cache_value   | 1
-        # log_cnt       | 26
-        # is_cycled     | f
-        # is_called     | t
-        sequence_names = select_all(<<-SQL).map { |row| row['relname'] }
-          SELECT c.relname FROM pg_class c
-          WHERE c.relkind = 'S' AND
-              c.relname NOT LIKE '%_id_seq'
-          ORDER BY c.relname asc;
-        SQL
-        all_sequences = []
-
-        sequence_names.each do |sequence_name|
-          row = select_one("SELECT * FROM #{sequence_name}")
-
-          options = {
-            :increment => row['increment_by'].to_i,
-            :min       => row['min_value'].to_i,
-            :max       => row['max_value'].to_i,
-            :start     => row['start_value'].to_i,
-            :cache     => row['cache_value'].to_i,
-            :cycle     => row['is_cycled'] == 't'
-          }
-
-          all_sequences << SequenceDefinition.new(sequence_name, options)
-        end
-
-        all_sequences
+        postgresql_version >= 100_000 ? pg_10_sequences : pg_9_sequences
       end
 
       protected
@@ -154,6 +119,63 @@ module PgSequencer
         end
       end
 
+      def pg_10_sequences
+        sequences = select_all(<<-SQL)
+          SELECT
+            c.relname as name,
+            seq.seqstart as start_value,
+            seq.seqincrement as increment_by,
+            seq.seqmax as max_value,
+            seq.seqmin as min_value,
+            seq.seqcache as cache_value,
+            seq.seqcycle as is_cycled
+          FROM pg_class c
+          JOIN pg_sequence seq on seq.seqrelid = c.relfilenode
+          WHERE c.relkind = 'S'
+          AND c.relname NOT LIKE '%_id_seq'
+          ORDER BY c.relname asc;
+        SQL
+
+        sequences.map do |row|
+          options = {
+            :increment => row['increment_by'].to_i,
+            :min       => row['min_value'].to_i,
+            :max       => row['max_value'].to_i,
+            :start     => row['start_value'].to_i,
+            :cache     => row['cache_value'].to_i,
+            :cycle     => row['is_cycled'] == 't'
+          }
+
+          SequenceDefinition.new(row["name"], options)
+        end
+      end
+
+      def pg_9_sequences
+        sequence_names = select_all(<<-SQL).map { |row| row['relname'] }
+          SELECT c.relname FROM pg_class c
+          WHERE c.relkind = 'S' AND
+              c.relname NOT LIKE '%_id_seq'
+          ORDER BY c.relname asc;
+        SQL
+        all_sequences = []
+
+        sequence_names.each do |sequence_name|
+          row = select_one("SELECT * FROM #{sequence_name}")
+
+          options = {
+            :increment => row['increment_by'].to_i,
+            :min       => row['min_value'].to_i,
+            :max       => row['max_value'].to_i,
+            :start     => row['start_value'].to_i,
+            :cache     => row['cache_value'].to_i,
+            :cycle     => row['is_cycled'] == 't'
+          }
+
+          all_sequences << SequenceDefinition.new(sequence_name, options)
+        end
+
+        all_sequences
+      end
     end
   end
 end
