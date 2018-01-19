@@ -1,3 +1,5 @@
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FEZO801%2Fpg_sequencer.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FEZO801%2Fpg_sequencer?ref=badge_shield)
+
 = pg_sequencer
 
 pg_sequencer adds methods to your migrations to allow you to create, drop and change sequence objects in PostgreSQL. It also dumps sequences to schema.rb.
@@ -78,3 +80,7 @@ This is equivalent to:
 * http://www.postgresql.org/docs/8.1/static/sql-createsequence.html
 * http://www.postgresql.org/docs/8.1/static/sql-altersequence.html
 * http://www.alberton.info/postgresql_meta_info.html
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FEZO801%2Fpg_sequencer.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FEZO801%2Fpg_sequencer?ref=badge_large)
