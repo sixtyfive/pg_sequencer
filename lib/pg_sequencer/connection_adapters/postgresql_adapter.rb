@@ -77,16 +77,29 @@ module PgSequencer
         all_sequences = []
         
         sequence_names.each do |sequence_name|
-          row = select_one("SELECT * FROM #{sequence_name}")
-          
-          options = {
-            :increment => row['increment_by'].to_i,
-            :min       => row['min_value'].to_i,
-            :max       => row['max_value'].to_i,
-            :start     => row['start_value'].to_i,
-            :cache     => row['cache_value'].to_i,
-            :cycle     => row['is_cycled'] == 't'
-          }
+          options = if postgresql_version > 100_000
+            row = select_one("SELECT * FROM pg_sequence WHERE seqrelid='#{sequence_name}'::regclass")
+
+            {
+              :increment => row['seqincrement'].to_i,
+              :min => row['seqmin'].to_i,
+              :max => row['seqmax'].to_i,
+              :start => row['seqstart'].to_i,
+              :cache => row['seqcache'].to_i,
+              :cycle => row['seqcycle'] == 't'
+            }
+          else
+            row = select_one("SELECT * FROM #{sequence_name}")
+
+            {
+              :increment => row['increment_by'].to_i,
+              :min       => row['min_value'].to_i,
+              :max       => row['max_value'].to_i,
+              :start     => row['start_value'].to_i,
+              :cache     => row['cache_value'].to_i,
+              :cycle     => row['is_cycled'] == 't'
+            }
+          end
           
           all_sequences << SequenceDefinition.new(sequence_name, options)
         end
