@@ -49,7 +49,7 @@ module PgSequencer
       #   :cycle     => true
       def create_sequence_sql(name, options = {})
         options.delete(:restart)
-        "CREATE SEQUENCE #{name}#{sequence_options_sql(options)}"
+        "CREATE SEQUENCE IF NOT EXISTS #{name}#{sequence_options_sql(options)}"
       end
 
       def drop_sequence_sql(name)
