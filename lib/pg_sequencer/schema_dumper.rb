@@ -22,7 +22,8 @@ module PgSequencer
     extend ActiveSupport::Concern
 
     included do
-      alias_method_chain :tables, :sequences
+      #alias_method_chain :tables, :sequences
+      alias_method :tables, :sequences
     end
 
     def tables_with_sequences(stream)
