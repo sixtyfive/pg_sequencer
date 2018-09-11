@@ -99,12 +99,12 @@ module PgSequencer
           owned_by = owner ? "#{owner[:table]}.#{owner[:column]}" : nil
 
           options = {
-            increment: sequence["increment_by"].to_i,
-            min: sequence["min_value"].to_i,
-            max: sequence["max_value"].to_i,
-            start: sequence["start_value"].to_i,
-            cache: sequence["cache_value"].to_i,
-            cycle: sequence["is_cycled"] == "t",
+            increment: sequence['seqincrement'].to_i,
+            min: sequence['seqmin'].to_i,
+            max: sequence['seqmax'].to_i,
+            start: sequence['seqstart'].to_i,
+            cache: sequence['seqcache'].to_i,
+            cycle: sequence['seqcycle'] == 't',
             owned_by: owned_by,
             owner_is_primary_key: owner_is_primary_key,
           }
@@ -140,7 +140,11 @@ module PgSequencer
       # is_cycled     | f
       # is_called     | t
       def select_sequence(sequence_name)
-        select_one("SELECT * FROM #{sequence_name}")
+        if postgresql_version > 100_000
+          select_one("SELECT * FROM pg_sequence WHERE seqrelid='#{sequence_name}'::regclass")
+        else
+          select_one("SELECT increment_by AS seqincrement, min_value AS seqmin, max_value AS seqmax, start_value AS seqstart, cache_value AS seqcache, is_cycled AS seqcycle FROM #{sequence_name}")
+        end
       end
 
       # Values for owners of a sequence:
