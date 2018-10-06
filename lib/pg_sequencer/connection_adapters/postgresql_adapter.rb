@@ -92,25 +92,28 @@ module PgSequencer
 
       def sequences
         select_sequence_names.map do |sequence_name|
+          begin
+            sequence = select_sequence(sequence_name)
+            owner = select_sequence_owners(sequence_name).first
+            owner_is_primary_key = owner && owner[:column] == primary_key(owner[:table])
+            owned_by = owner ? "#{owner[:table]}.#{owner[:column]}" : nil
 
-          sequence = select_sequence(sequence_name)
-          owner = select_sequence_owners(sequence_name).first
-          owner_is_primary_key = owner && owner[:column] == primary_key(owner[:table])
-          owned_by = owner ? "#{owner[:table]}.#{owner[:column]}" : nil
+            options = {
+              increment: sequence['seqincrement'].to_i,
+              min: sequence['seqmin'].to_i,
+              max: sequence['seqmax'].to_i,
+              start: sequence['seqstart'].to_i,
+              cache: sequence['seqcache'].to_i,
+              cycle: sequence['seqcycle'] == 't',
+              owned_by: owned_by,
+              owner_is_primary_key: owner_is_primary_key,
+            }
 
-          options = {
-            increment: sequence['seqincrement'].to_i,
-            min: sequence['seqmin'].to_i,
-            max: sequence['seqmax'].to_i,
-            start: sequence['seqstart'].to_i,
-            cache: sequence['seqcache'].to_i,
-            cycle: sequence['seqcycle'] == 't',
-            owned_by: owned_by,
-            owner_is_primary_key: owner_is_primary_key,
-          }
-
-          SequenceDefinition.new(sequence_name, options)
-        end
+            SequenceDefinition.new(sequence_name, options)
+          rescue ActiveRecord::StatementInvalid => e
+            # next
+          end
+        end.compact
       end
 
       protected
@@ -124,7 +127,7 @@ module PgSequencer
               WHERE c.relkind = 'S' ORDER BY c.relname ASC
               SQL
 
-        select_all(sql).map { |row| row["relname"] }
+        select_all(sql).map { |row| row["relname"] }.uniq
       end
 
       # Values for a selected sequence:
