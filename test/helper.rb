@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2016 Code42, Inc.
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,4 +23,6 @@ require 'rubygems'
 require 'test/unit'
 require 'active_record'
 require 'shoulda-context'
-require File.expand_path('../../lib/pg_sequencer', __FILE__)
+require 'minitest/autorun'
+
+require File.expand_path('../lib/pg_sequencer', __dir__)

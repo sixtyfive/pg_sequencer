@@ -17,17 +17,15 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-require 'rake'
+
 # begin
 #   require 'bundler/setup'
 # rescue LoadError
 #   puts 'You must `gem install bundler` and `bundle install` to run rake tasks'
 # end
 
-desc 'Default: run unit tests.'
-task :default => :test
-
 require 'rake/testtask'
+
 desc 'Test the foreigner plugin.'
 Rake::TestTask.new(:test) do |t|
   t.libs << 'lib'
@@ -35,3 +33,6 @@ Rake::TestTask.new(:test) do |t|
   t.pattern = 'test/**/*_test.rb'
   t.verbose = true
 end
+
+desc 'Default: run unit tests.'
+task :default => :test

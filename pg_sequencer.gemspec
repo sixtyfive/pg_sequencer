@@ -23,4 +23,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency "guard"
   s.add_development_dependency "guard-test"
   s.add_development_dependency "shoulda-context"
+  s.add_development_dependency "rake"
 end
