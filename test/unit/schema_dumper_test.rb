@@ -48,6 +48,8 @@ class SchemaDumperTest < ActiveSupport::TestCase
   end
 
   class MockSchemaDumper
+    prepend PgSequencer::SchemaDumper # modify method `tables` to include sequences
+
     def initialize(connection)
       @connection = connection
     end
@@ -74,8 +76,6 @@ class SchemaDumperTest < ActiveSupport::TestCase
     def trailer(stream)
       stream.puts '# Fake Schema Trailer'
     end
-
-    include PgSequencer::SchemaDumper
   end
 
   context 'dumping the schema' do
@@ -101,10 +101,10 @@ class SchemaDumperTest < ActiveSupport::TestCase
 
       expected_output = <<~SCHEMAEND
         # Fake Schema Header
-        # (No Tables)
           create_sequence "seq_t_item", :increment => 1, :min => 1, :max => 2000000, :start => 1, :cache => 5, :cycle => true
           create_sequence "seq_t_user", :increment => 1, :min => 1, :max => 2000000, :start => 1, :cache => 5, :cycle => true
 
+        # (No Tables)
         # Fake Schema Trailer
       SCHEMAEND
 
@@ -123,10 +123,10 @@ class SchemaDumperTest < ActiveSupport::TestCase
       should 'properly quote false values in schema output' do
         expected_output = <<~SCHEMAEND
           # Fake Schema Header
-          # (No Tables)
             create_sequence "seq_t_item", :increment => 1, :min => false, :max => 2000000, :start => 1, :cache => 5, :cycle => true
             create_sequence "seq_t_user", :increment => 1, :min => false, :max => 2000000, :start => 1, :cache => 5, :cycle => true
 
+          # (No Tables)
           # Fake Schema Trailer
         SCHEMAEND
 
