@@ -75,41 +75,42 @@ module PgSequencer
       end
 
       def sequences
-        # sequence_temp=# select * from temp;
-        # -[ RECORD 1 ]-+--------------------
-        # sequence_name | temp
-        # last_value    | 7
-        # start_value   | 1
-        # increment_by  | 1
-        # max_value     | 9223372036854775807
-        # min_value     | 1
-        # cache_value   | 1
-        # log_cnt       | 26
-        # is_cycled     | f
-        # is_called     | t
-        sequence_names = select_all("SELECT c.relname FROM pg_class c WHERE c.relkind = 'S' order by c.relname asc").map { |row| row['relname'] }
+        # from PostgreSQL 8.4 (1.7.2009) this can be used (tested on 9.5.19 and 11.7)
+        # unfortunatelly, schema.sequences not includes CACHE value, so we have to take more queries
+        sequence_defs = select_all('SELECT * FROM information_schema.sequences')
 
-        all_sequences = []
-
-        sequence_names.each do |sequence_name|
-          row = select_one("SELECT * FROM #{sequence_name}")
+        sequence_defs.collect do |row|
+          name = row['sequence_name']
 
           options = {
-            :increment => row['increment_by'].to_i,
-            :min       => row['min_value'].to_i,
-            :max       => row['max_value'].to_i,
+            :increment => row['increment'].to_i,
+            :min       => row['minimum_value'].to_i,
+            :max       => row['maximum_value'].to_i,
             :start     => row['start_value'].to_i,
-            :cache     => row['cache_value'].to_i,
-            :cycle     => row['is_cycled'] == 't'
+            :cache     => sequence_cache_value(name).to_i,
+            :cycle     => row['cycle_option'] != 'NO'
           }
 
-          all_sequences << SequenceDefinition.new(sequence_name, options)
+          SequenceDefinition.new(name, options)
         end
-
-        all_sequences
       end
 
       protected
+
+      def sequence_cache_value(seq_name)
+        # PostgreSQL v10 and above
+        cache_details = select_one("SELECT * FROM pg_sequence WHERE seqrelid = '#{seq_name}'::regclass")
+        return cache_details['seqcache']
+      rescue ActiveRecord::StatementInvalid
+        begin
+          # lower versions
+          row = select_one("SELECT * FROM #{seq_name}")
+          return row['cache_value']
+        rescue ActiveRecord::StatementInvalid
+          return 1 # fallback to default PostgreSQL value
+        end
+      end
+
       def increment_option_sql(options = {})
         " INCREMENT BY #{options[:increment] || options[:increment_by]}"
       end
