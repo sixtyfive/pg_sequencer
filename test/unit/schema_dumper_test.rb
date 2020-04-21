@@ -22,7 +22,7 @@
 require 'helper'
 
 class SchemaDumperTest < ActiveSupport::TestCase
-  class SequenceDefinition < Struct.new(:name, :options); end
+  SequenceDefinition = Struct.new(:name, :options)
 
   class MockConnection
     attr_accessor :sequences

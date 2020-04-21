@@ -55,6 +55,9 @@ This is equivalent of the following query:
 
   CREATE SEQUENCE seq_user INCREMENT BY 1 MIN 1 MAX 2000000 START 1 CACHE 10 NO CYCLE
 
+If sequence already exists, creation is skipped.
+If You pass option `drop_if_exists: true`, than existing one is dropped and new is created.
+
 === Reset a sequence's value:
 
   change_sequence "seq_accounts", :restart_with => 50
@@ -68,7 +71,7 @@ This is equivalent to:
   drop_sequence "seq_products"
 
 == Caveats / Bugs
-* Tested with postgres 9.0.4, should work down to 8.1.
+* Tested with postgres 11.7, should work down to 8.4.
 * Listing all the sequences in a database creates n+1 queries (1 to get the names and n to describe each sequence). Is there a way to fully describe all sequences in a database in one query?
 * The "SET SCHEMA" fragment of the ALTER command is not implemented.
 * Oracle/other databases not supported

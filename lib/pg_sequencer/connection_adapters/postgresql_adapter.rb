@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2016 Code42, Inc.
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,12 +21,18 @@
 # SOFTWARE.
 module PgSequencer
   module ConnectionAdapters
-
-    class SequenceDefinition < Struct.new(:name, :options)
-    end
+    SequenceDefinition = Struct.new(:name, :options)
 
     module PostgreSQLAdapter
       def create_sequence(name, options = {})
+        if sequence_already_exists?(name)
+          if options.delete(:drop_if_exists) == true
+            drop_sequence(name)
+          else
+            return
+          end
+        end
+
         execute create_sequence_sql(name, options)
       end
 
@@ -47,6 +55,7 @@ module PgSequencer
       #   :start     => 1,
       #   :cache     => 5,
       #   :cycle     => true
+      #   :drop_if_exists => false
       def create_sequence_sql(name, options = {})
         options.delete(:restart)
         "CREATE SEQUENCE #{name}#{sequence_options_sql(options)}"
@@ -57,38 +66,35 @@ module PgSequencer
       end
 
       def change_sequence_sql(name, options = {})
-        return "" if options.blank?
+        return '' if options.blank?
+
         options.delete(:start)
         "ALTER SEQUENCE #{name}#{sequence_options_sql(options)}"
       end
 
       def sequence_options_sql(options = {})
-        sql = ""
-        sql << increment_option_sql(options)  if options[:increment] or options[:increment_by]
-        sql << min_option_sql(options)
-        sql << max_option_sql(options)
-        sql << start_option_sql(options)      if options[:start]    or options[:start_with]
-        sql << restart_option_sql(options)    if options[:restart]  or options[:restart_with]
-        sql << cache_option_sql(options)      if options[:cache]
-        sql << cycle_option_sql(options)
+        sql = ''
+        sql += increment_option_sql(options) if options[:increment] || options[:increment_by]
+        sql += min_option_sql(options)
+        sql += max_option_sql(options)
+        sql += start_option_sql(options) if options[:start] || options[:start_with]
+        sql += restart_option_sql(options) if options[:restart] || options[:restart_with]
+        sql += cache_option_sql(options) if options[:cache]
+        sql += cycle_option_sql(options)
         sql
       end
 
       def sequences
-        # from PostgreSQL 8.4 (1.7.2009) this can be used (tested on 9.5.19 and 11.7)
-        # unfortunatelly, schema.sequences not includes CACHE value, so we have to take more queries
-        sequence_defs = select_all('SELECT * FROM information_schema.sequences')
-
         sequence_defs.collect do |row|
           name = row['sequence_name']
 
           options = {
-            :increment => row['increment'].to_i,
-            :min       => row['minimum_value'].to_i,
-            :max       => row['maximum_value'].to_i,
-            :start     => row['start_value'].to_i,
-            :cache     => sequence_cache_value(name).to_i,
-            :cycle     => row['cycle_option'] != 'NO'
+            increment: row['increment'].to_i,
+            min: row['minimum_value'].to_i,
+            max: row['maximum_value'].to_i,
+            start: row['start_value'].to_i,
+            cache: sequence_cache_value(name).to_i,
+            cycle: row['cycle_option'] != 'NO'
           }
 
           SequenceDefinition.new(name, options)
@@ -97,10 +103,20 @@ module PgSequencer
 
       protected
 
+      def sequence_already_exists?(name)
+        sequence_defs.any? { |sd| sd['sequence_name'] == name }
+      end
+
+      def sequence_defs
+        # from PostgreSQL 8.4 (1.7.2009) this can be used (tested on 9.5.19 and 11.7)
+        # unfortunatelly, schema.sequences not includes CACHE value, so we have to take more queries
+        select_all('SELECT * FROM information_schema.sequences')
+      end
+
       def sequence_cache_value(seq_name)
         # PostgreSQL v10 and above
         cache_details = select_one("SELECT * FROM pg_sequence WHERE seqrelid = '#{seq_name}'::regclass")
-        return cache_details['seqcache']
+        cache_details['seqcache']
       rescue ActiveRecord::StatementInvalid
         begin
           # lower versions
@@ -117,16 +133,16 @@ module PgSequencer
 
       def min_option_sql(options = {})
         case options[:min]
-        when nil then ""
-        when false then " NO MINVALUE"
+        when nil then ''
+        when false then ' NO MINVALUE'
         else " MINVALUE #{options[:min]}"
         end
       end
 
       def max_option_sql(options = {})
         case options[:max]
-        when nil then ""
-        when false then " NO MAXVALUE"
+        when nil then ''
+        when false then ' NO MAXVALUE'
         else " MAXVALUE #{options[:max]}"
         end
       end
@@ -145,22 +161,22 @@ module PgSequencer
 
       def cycle_option_sql(options = {})
         case options[:cycle]
-        when nil then ""
-        when false then " NO CYCLE"
-        else " CYCLE"
+        when nil then ''
+        when false then ' NO CYCLE'
+        else ' CYCLE'
         end
       end
-
     end
   end
 end
 
-# todo: add JDBCAdapter?
+# TODO: add JDBCAdapter?
 [:PostgreSQLAdapter].each do |adapter|
   begin
     ActiveRecord::ConnectionAdapters.const_get(adapter).class_eval do
       include PgSequencer::ConnectionAdapters::PostgreSQLAdapter
     end
-  rescue
+  rescue NameError # rubocop:disable Lint/HandleExceptions
+    # adapter is not found, ignore it
   end
 end

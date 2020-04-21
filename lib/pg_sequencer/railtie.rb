@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2016 Code42, Inc.
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,7 +21,7 @@
 # SOFTWARE.
 module PgSequencer
   class Railtie < Rails::Railtie
-    initializer "pg_sequencer.load_adapter" do
+    initializer 'pg_sequencer.load_adapter' do
       ActiveSupport.on_load :active_record do
         require 'pg_sequencer/connection_adapters/postgresql_adapter'
 
@@ -30,18 +32,9 @@ module PgSequencer
         ActiveRecord::SchemaDumper.class_eval do
           prepend PgSequencer::SchemaDumper
         end
-
       end
 
-  #     if defined?(ActiveRecord::Migration::CommandRecorder)
-  #       ActiveRecord::Migration::CommandRecorder.class_eval do
-  #         include PgSequencer::Migration::CommandRecorder
-  #       end
-  #     end
-  #
-  #     # PgSequencer::Adapter.load!
-  #   end
-
-    end # initializer
+      # end of initializer
+    end
   end
 end
