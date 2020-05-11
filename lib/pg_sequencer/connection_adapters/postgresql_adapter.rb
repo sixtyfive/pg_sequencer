@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2016 Code42, Inc.
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,12 +21,18 @@
 # SOFTWARE.
 module PgSequencer
   module ConnectionAdapters
-
-    class SequenceDefinition < Struct.new(:name, :options)
-    end
+    SequenceDefinition = Struct.new(:name, :options)
 
     module PostgreSQLAdapter
       def create_sequence(name, options = {})
+        if sequence_already_exists?(name)
+          if options.delete(:drop_if_exists) == true
+            drop_sequence(name)
+          else
+            return
+          end
+        end
+
         execute create_sequence_sql(name, options)
       end
 
@@ -47,6 +55,7 @@ module PgSequencer
       #   :start     => 1,
       #   :cache     => 5,
       #   :cycle     => true
+      #   :drop_if_exists => false
       def create_sequence_sql(name, options = {})
         options.delete(:restart)
         "CREATE SEQUENCE #{name}#{sequence_options_sql(options)}"
@@ -57,75 +66,83 @@ module PgSequencer
       end
 
       def change_sequence_sql(name, options = {})
-        return "" if options.blank?
+        return '' if options.blank?
+
         options.delete(:start)
         "ALTER SEQUENCE #{name}#{sequence_options_sql(options)}"
       end
 
       def sequence_options_sql(options = {})
-        sql = ""
-        sql << increment_option_sql(options)  if options[:increment] or options[:increment_by]
-        sql << min_option_sql(options)
-        sql << max_option_sql(options)
-        sql << start_option_sql(options)      if options[:start]    or options[:start_with]
-        sql << restart_option_sql(options)    if options[:restart]  or options[:restart_with]
-        sql << cache_option_sql(options)      if options[:cache]
-        sql << cycle_option_sql(options)
+        sql = ''
+        sql += increment_option_sql(options) if options[:increment] || options[:increment_by]
+        sql += min_option_sql(options)
+        sql += max_option_sql(options)
+        sql += start_option_sql(options) if options[:start] || options[:start_with]
+        sql += restart_option_sql(options) if options[:restart] || options[:restart_with]
+        sql += cache_option_sql(options) if options[:cache]
+        sql += cycle_option_sql(options)
         sql
       end
 
       def sequences
-        # sequence_temp=# select * from temp;
-        # -[ RECORD 1 ]-+--------------------
-        # sequence_name | temp
-        # last_value    | 7
-        # start_value   | 1
-        # increment_by  | 1
-        # max_value     | 9223372036854775807
-        # min_value     | 1
-        # cache_value   | 1
-        # log_cnt       | 26
-        # is_cycled     | f
-        # is_called     | t
-        sequence_names = select_all("SELECT c.relname FROM pg_class c WHERE c.relkind = 'S' order by c.relname asc").map { |row| row['relname'] }
-
-        all_sequences = []
-
-        sequence_names.each do |sequence_name|
-          row = select_one("SELECT * FROM #{sequence_name}")
+        sequence_defs.collect do |row|
+          name = row['sequence_name']
 
           options = {
-            :increment => row['increment_by'].to_i,
-            :min       => row['min_value'].to_i,
-            :max       => row['max_value'].to_i,
-            :start     => row['start_value'].to_i,
-            :cache     => row['cache_value'].to_i,
-            :cycle     => row['is_cycled'] == 't'
+            increment: row['increment'].to_i,
+            min: row['minimum_value'].to_i,
+            max: row['maximum_value'].to_i,
+            start: row['start_value'].to_i,
+            cache: sequence_cache_value(name).to_i,
+            cycle: row['cycle_option'] != 'NO'
           }
 
-          all_sequences << SequenceDefinition.new(sequence_name, options)
+          SequenceDefinition.new(name, options)
         end
-
-        all_sequences
       end
 
       protected
+
+      def sequence_already_exists?(name)
+        sequence_defs.any? { |sd| sd['sequence_name'] == name }
+      end
+
+      def sequence_defs
+        # from PostgreSQL 8.4 (1.7.2009) this can be used (tested on 9.5.19 and 11.7)
+        # unfortunatelly, schema.sequences not includes CACHE value, so we have to take more queries
+        select_all('SELECT * FROM information_schema.sequences')
+      end
+
+      def sequence_cache_value(seq_name)
+        # PostgreSQL v10 and above
+        cache_details = select_one("SELECT * FROM pg_sequence WHERE seqrelid = '#{seq_name}'::regclass")
+        cache_details['seqcache']
+      rescue ActiveRecord::StatementInvalid
+        begin
+          # lower versions
+          row = select_one("SELECT * FROM #{seq_name}")
+          return row['cache_value']
+        rescue ActiveRecord::StatementInvalid
+          return 1 # fallback to default PostgreSQL value
+        end
+      end
+
       def increment_option_sql(options = {})
         " INCREMENT BY #{options[:increment] || options[:increment_by]}"
       end
 
       def min_option_sql(options = {})
         case options[:min]
-        when nil then ""
-        when false then " NO MINVALUE"
+        when nil then ''
+        when false then ' NO MINVALUE'
         else " MINVALUE #{options[:min]}"
         end
       end
 
       def max_option_sql(options = {})
         case options[:max]
-        when nil then ""
-        when false then " NO MAXVALUE"
+        when nil then ''
+        when false then ' NO MAXVALUE'
         else " MAXVALUE #{options[:max]}"
         end
       end
@@ -144,22 +161,22 @@ module PgSequencer
 
       def cycle_option_sql(options = {})
         case options[:cycle]
-        when nil then ""
-        when false then " NO CYCLE"
-        else " CYCLE"
+        when nil then ''
+        when false then ' NO CYCLE'
+        else ' CYCLE'
         end
       end
-
     end
   end
 end
 
-# todo: add JDBCAdapter?
+# TODO: add JDBCAdapter?
 [:PostgreSQLAdapter].each do |adapter|
   begin
     ActiveRecord::ConnectionAdapters.const_get(adapter).class_eval do
       include PgSequencer::ConnectionAdapters::PostgreSQLAdapter
     end
-  rescue
+  rescue NameError # rubocop:disable Lint/HandleExceptions
+    # adapter is not found, ignore it
   end
 end

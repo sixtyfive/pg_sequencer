@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2016 Code42, Inc.
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -18,5 +20,5 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 module PgSequencer
-  VERSION = "0.0.2"
+  VERSION = '0.0.3'
 end

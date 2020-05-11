@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2016 Code42, Inc.
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -17,19 +19,22 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+
+# Used to add `create_sequence(...)` in `db/schema.rb` after creating tables
 module PgSequencer
   module SchemaDumper
     extend ActiveSupport::Concern
 
     def tables(stream)
-      sequences(stream)
       super(stream)
+      sequences(stream) # sequences must go after tables to correctly find sequences created along with them
     end
 
     private
+
     def sequences(stream)
       sequence_statements = @connection.sequences.map do |sequence|
-        statement_parts = [ ('create_sequence ') + sequence.name.inspect ]
+        statement_parts = ['create_sequence ' + sequence.name.inspect]
         statement_parts << (':increment => ' + sequence.options[:increment].inspect)
         statement_parts << (':min => ' + sequence.options[:min].inspect)
         statement_parts << (':max => ' + sequence.options[:max].inspect)
