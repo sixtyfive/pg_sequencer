@@ -93,18 +93,24 @@ class SchemaDumperTest < ActiveSupport::TestCase
     end
 
     should 'output all sequences correctly' do
-      sequences = %w[seq_t_user seq_t_item].map do |name|
+      sequences = %w[table_name_id_seq seq_t_user seq_t_item].map do |name|
         SequenceDefinition.new(name, @options)
       end
 
       @conn = MockConnection.new(sequences)
 
+      # NON ID sequences goes before `tables` as they may be used in table definitions
+      # ID sequences created in `create_table` goes to end (and safely ignored if they already exists)
       expected_output = <<~SCHEMAEND
         # Fake Schema Header
+
           create_sequence "seq_t_item", :increment => 1, :min => 1, :max => 2000000, :start => 1, :cache => 5, :cycle => true
           create_sequence "seq_t_user", :increment => 1, :min => 1, :max => 2000000, :start => 1, :cache => 5, :cycle => true
 
         # (No Tables)
+
+          create_sequence "table_name_id_seq", :increment => 1, :min => 1, :max => 2000000, :start => 1, :cache => 5, :cycle => true
+
         # Fake Schema Trailer
       SCHEMAEND
 
@@ -123,6 +129,7 @@ class SchemaDumperTest < ActiveSupport::TestCase
       should 'properly quote false values in schema output' do
         expected_output = <<~SCHEMAEND
           # Fake Schema Header
+
             create_sequence "seq_t_item", :increment => 1, :min => false, :max => 2000000, :start => 1, :cache => 5, :cycle => true
             create_sequence "seq_t_user", :increment => 1, :min => false, :max => 2000000, :start => 1, :cache => 5, :cycle => true
 

@@ -26,14 +26,27 @@ module PgSequencer
     extend ActiveSupport::Concern
 
     def tables(stream)
+
+      unless sequences_not_from_create_table.empty?
+        stream.puts
+        create_sequences(stream, sequences_not_from_create_table) unless sequences_not_from_create_table.empty?
+        stream.puts
+      end
+
       super(stream)
-      sequences(stream) # sequences must go after tables to correctly find sequences created along with them
+
+      unless sequences_from_create_table.empty?
+        stream.puts
+        # sequences must go after tables to correctly find sequences created along with them
+        create_sequences(stream, sequences_from_create_table)
+        stream.puts
+      end
     end
 
     private
 
-    def sequences(stream)
-      sequence_statements = @connection.sequences.map do |sequence|
+    def create_sequences(stream, sequences)
+      sequence_statements = sequences.map do |sequence|
         statement_parts = ['create_sequence ' + sequence.name.inspect]
         statement_parts << (':increment => ' + sequence.options[:increment].inspect)
         statement_parts << (':min => ' + sequence.options[:min].inspect)
@@ -46,7 +59,14 @@ module PgSequencer
       end
 
       stream.puts sequence_statements.sort.join("\n")
-      stream.puts
+    end
+
+    def sequences_from_create_table
+      @connection.sequences.select { |sq| sq.name.ends_with?('_id_seq') }
+    end
+
+    def sequences_not_from_create_table
+      @connection.sequences.to_a - sequences_from_create_table.to_a
     end
   end
 end
