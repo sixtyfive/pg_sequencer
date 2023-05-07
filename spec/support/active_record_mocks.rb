@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class MockConnection
   attr_accessor :sequences
 
@@ -8,26 +10,36 @@ end
 
 class MockStream
   attr_accessor :output
-  def initialize; @output = []; end
-  def puts(str = ""); @output << str; end
-  def to_s; @output.join("\n"); end
+
+  def initialize
+    @output = []
+  end
+
+  def puts(str = '')
+    @output << str
+  end
+
+  def to_s
+    @output.join("\n")
+  end
 end
 
 class MockSchemaDumper
-  def initialize(connection)
-    @connection = connection
-  end
-
+  prepend PgSequencer::SchemaDumper
   def self.dump(conn, stream)
     new(conn).dump(stream)
   end
 
+  def initialize(connection)
+    @connection = connection
+  end
+
   def header(stream)
-    stream.puts "# Fake Schema Header"
+    stream.puts '# Fake Schema Header'
   end
 
   def tables(stream)
-    stream.puts "# (No Tables)"
+    stream.puts '# (No Tables)'
   end
 
   def dump(stream)
@@ -38,8 +50,6 @@ class MockSchemaDumper
   end
 
   def trailer(stream)
-    stream.puts "# Fake Schema Trailer"
+    stream.puts '# Fake Schema Trailer'
   end
-
-  prepend PgSequencer::SchemaDumper
 end

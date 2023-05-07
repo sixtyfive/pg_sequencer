@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 module PgSequencer
   module RollbackSupport
     extend ActiveSupport::Concern
 
     included do
-      [:create_sequence, :drop_sequence, :change_sequence].each do |m|
+      %i[create_sequence drop_sequence change_sequence].each do |m|
         self::ReversibleAndIrreversibleMethods.tap { |x| x << m unless x.include?(m) }
       end
     end
@@ -24,18 +26,18 @@ module PgSequencer
     end
 
     def invert_create_sequence(args)
-        warn 'invert'
+      warn 'invert'
       [:drop_sequence, [args.first]]
     end
 
     def invert_drop_sequence(args)
-        warn 'invert'
+      warn 'invert'
       [:create_sequence, args]
     end
 
-#    def invert_change_sequence(args)
-#      [:invert_change_sequence, args]
-#      raise ActiveRecord::IrreversibleMigration, 'change_sequence is irreversible.'
-#    end
+    #    def invert_change_sequence(args)
+    #      [:invert_change_sequence, args]
+    #      raise ActiveRecord::IrreversibleMigration, 'change_sequence is irreversible.'
+    #    end
   end
 end

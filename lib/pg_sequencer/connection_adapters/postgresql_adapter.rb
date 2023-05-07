@@ -1,9 +1,10 @@
+# frozen_string_literal: true
+
 # This module enhances ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
 # https://github.com/rails/rails/blob/master/activerecord/lib/active_record/connection_adapters/postgresql_adapter.rb
 module PgSequencer
   module ConnectionAdapters
     module PostgreSQLAdapter
-
       # Example usage:
       #
       #   create_sequence "user_seq",
@@ -64,7 +65,8 @@ module PgSequencer
       #     [ OWNED BY { table_name.column_name | NONE } ]
       #
       def change_sequence_sql(name, options = {})
-        return "" if options.blank?
+        return '' if options.blank?
+
         options.delete(:start)
         "ALTER SEQUENCE #{name}#{sequence_options_sql(options)}"
       end
@@ -78,33 +80,32 @@ module PgSequencer
       end
 
       def sequence_options_sql(options = {})
-        sql = ""
-        sql << increment_option_sql(options) if options[:increment] or options[:increment_by]
-        sql << min_option_sql(options)
-        sql << max_option_sql(options)
-        sql << start_option_sql(options) if options[:start]    or options[:start_with]
-        sql << restart_option_sql(options) if options[:restart]  or options[:restart_with]
-        sql << cache_option_sql(options) if options[:cache]
-        sql << cycle_option_sql(options)
-        sql << owned_option_sql(options) if options[:owned_by]
+        sql = ''
+        sql += increment_option_sql(options) if options[:increment] || options[:increment_by]
+        sql += min_option_sql(options)
+        sql += max_option_sql(options)
+        sql += start_option_sql(options) if options[:start] || options[:start_with]
+        sql += restart_option_sql(options) if options[:restart] || options[:restart_with]
+        sql += cache_option_sql(options) if options[:cache]
+        sql += cycle_option_sql(options)
+        sql += owned_option_sql(options) if options[:owned_by]
         sql
       end
 
       def sequences
         select_sequence_names.map do |sequence_name|
-
           sequence = select_sequence(sequence_name)
           owner = select_sequence_owners(sequence_name).first
           owner_is_primary_key = owner && owner[:column] == primary_key(owner[:table])
           owned_by = owner ? "#{owner[:table]}.#{owner[:column]}" : nil
 
           options = {
-            increment: sequence["increment_by"].to_i,
-            min: sequence["min_value"].to_i,
-            max: sequence["max_value"].to_i,
-            start: sequence["start_value"].to_i,
-            cache: sequence["cache_value"].to_i,
-            cycle: sequence["is_cycled"] == "t",
+            increment: sequence[:increment].to_i,
+            min: sequence['min_value'].to_i,
+            max: sequence['max_value'].to_i,
+            start: sequence['start_value'].to_i,
+            cache: sequence['cache_value'].to_i,
+            cycle: sequence['is_cycled'] == 't',
             owned_by: owned_by,
             owner_is_primary_key: owner_is_primary_key,
           }
@@ -113,7 +114,7 @@ module PgSequencer
         end
       end
 
-      protected
+    protected
 
       # Values for all sequences:
       # --------------+--------------------
@@ -122,9 +123,9 @@ module PgSequencer
         sql = <<-SQL.strip_heredoc
               SELECT c.relname FROM pg_class c
               WHERE c.relkind = 'S' ORDER BY c.relname ASC
-              SQL
+        SQL
 
-        select_all(sql).map { |row| row["relname"] }
+        select_all(sql).map { |row| row['relname'] }
       end
 
       # Values for a selected sequence:
@@ -159,14 +160,14 @@ module PgSequencer
               JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = d.refobjsubid
               WHERE s.relkind = 'S' AND d.deptype = 'a'
               AND s.relname = '#{sequence_name}'
-              SQL
+        SQL
 
         select_all(sql).map do |row|
           {
-            sequence: row["sequence_name"],
-            table: row["table_name"],
-            column: row["column_name"],
-            sch: row["sch"],
+            sequence: row['sequence_name'],
+            table: row['table_name'],
+            column: row['column_name'],
+            sch: row['sch'],
           }
         end
       end
@@ -177,16 +178,16 @@ module PgSequencer
 
       def min_option_sql(options = {})
         case options[:min]
-        when nil then ""
-        when false then " NO MINVALUE"
+        when nil then ''
+        when false then ' NO MINVALUE'
         else " MINVALUE #{options[:min]}"
         end
       end
 
       def max_option_sql(options = {})
         case options[:max]
-        when nil then ""
-        when false then " NO MAXVALUE"
+        when nil then ''
+        when false then ' NO MAXVALUE'
         else " MAXVALUE #{options[:max]}"
         end
       end
@@ -205,20 +206,18 @@ module PgSequencer
 
       def cycle_option_sql(options = {})
         case options[:cycle]
-        when nil then ""
-        when false then " NO CYCLE"
-        else " CYCLE"
+        when nil then ''
+        when false then ' NO CYCLE'
+        else ' CYCLE'
         end
       end
 
       def owned_option_sql(options = {})
         case options[:owned_by]
-        when nil then ""
-        when false then ""
+        when nil, false then ''
         else " OWNED BY #{options[:owned_by]}"
         end
       end
-
     end
   end
 end
