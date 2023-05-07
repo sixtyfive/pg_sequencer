@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module PgSequencer
+  # Because the original authors didn't care
   module RollbackSupport
     extend ActiveSupport::Concern
 

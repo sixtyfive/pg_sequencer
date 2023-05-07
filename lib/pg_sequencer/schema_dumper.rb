@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-# This module enhances ActiveRecord::SchemaDumper
-# https://github.com/rails/rails/blob/master/activerecord/lib/active_record/schema_dumper.rb
 module PgSequencer
+  # This module enhances ActiveRecord::SchemaDumper
+  # https://github.com/rails/rails/blob/master/activerecord/lib/active_record/schema_dumper.rb
   module SchemaDumper
     def tables(stream)
       sequences(stream)

@@ -3,6 +3,7 @@
 require 'rails/railtie'
 
 module PgSequencer
+  # Really ties the room together
   class Railtie < Rails::Railtie
     initializer 'pg_sequencer.load_adapter' do
       ActiveSupport.on_load :active_record do

@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe PgSequencer::ConnectionAdapters::PostgreSQLAdapter do
+describe PgSequencer::ConnectionAdapters::PostgreSQLAdapter do # rubocop:disable Metrics/BlockLength
   let(:dummy) { Object.new.extend(described_class) }
   let(:options) do
     {
@@ -15,7 +15,7 @@ describe PgSequencer::ConnectionAdapters::PostgreSQLAdapter do
     }
   end
 
-  context 'generating sequence option SQL' do
+  context 'generating sequence option SQL' do # rubocop:disable Metrics/BlockLength
     it 'includes all options' do
       output = ' INCREMENT BY 1 MINVALUE 1 MAXVALUE 2000000 START WITH 1 CACHE 5 CYCLE OWNED BY table_name.column_name'
       expect(dummy.sequence_options_sql(options.merge(start: 1))).to eq(output)

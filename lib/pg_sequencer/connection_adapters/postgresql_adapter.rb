@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-# This module enhances ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
-# https://github.com/rails/rails/blob/master/activerecord/lib/active_record/connection_adapters/postgresql_adapter.rb
 module PgSequencer
   module ConnectionAdapters
+    # This module enhances ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
+    # https://github.com/rails/rails/blob/master/activerecord/lib/active_record/connection_adapters/postgresql_adapter.rb
     module PostgreSQLAdapter
       # Example usage:
       #
@@ -79,7 +79,7 @@ module PgSequencer
         "DROP SEQUENCE #{name}"
       end
 
-      def sequence_options_sql(options = {})
+      def sequence_options_sql(options = {}) # rubocop:disable Metrics/PerceivedComplexity, Metrics/AbcSize, Metrics/CyclomaticComplexity
         sql = ''
         sql += increment_option_sql(options) if options[:increment] || options[:increment_by]
         sql += min_option_sql(options)
@@ -92,7 +92,7 @@ module PgSequencer
         sql
       end
 
-      def sequences
+      def sequences # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
         select_sequence_names.map do |sequence_name|
           sequence = select_sequence(sequence_name)
           owner = select_sequence_owners(sequence_name).first
@@ -150,7 +150,7 @@ module PgSequencer
       # table_name    | orders
       # column_name   | order_number
       # sch           | public
-      def select_sequence_owners(sequence_name)
+      def select_sequence_owners(sequence_name) # rubocop:disable Metrics/MethodLength
         sql = <<-SQL.strip_heredoc
               SELECT s.relname AS sequence_name, t.relname AS table_name, a.attname AS column_name, n.nspname AS sch
               FROM pg_class s

@@ -3,7 +3,7 @@
 require 'spec_helper'
 require 'support/active_record_mocks'
 
-describe PgSequencer::SchemaDumper do
+describe PgSequencer::SchemaDumper do # rubocop:disable Metrics/BlockLength
   let(:stream) { MockStream.new }
   let(:connection) { MockConnection.new(sequences) }
   let(:sequences) do

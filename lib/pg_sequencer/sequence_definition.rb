@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module PgSequencer
+  # Abstract representation of any adapter's sequence
   class SequenceDefinition
     attr_accessor :name, :options
 
