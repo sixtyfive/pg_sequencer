@@ -2,7 +2,7 @@
 
 module PgSequencer
   module ConnectionAdapters
-    # This module enhances ActiveRecord::ConnectionAdapters::PostgresqlAdapter
+    # This module enhances ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
     # https://github.com/rails/rails/blob/master/activerecord/lib/active_record/connection_adapters/postgresql_adapter.rb
     module PostgresqlAdapter
       # Example usage:
