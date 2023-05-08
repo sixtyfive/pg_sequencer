@@ -113,29 +113,22 @@ module PgSequencer
         owner ? "#{owner[:table]}.#{owner[:column]}" : nil
       end
 
-      def increment_for_sequence(sequence)
-        sequence.fetch_values('seqincrement', :increment, 'increment').first.to_i
-      end
-
-      def min_for_sequence(sequence)
-        sequence.fetch_values('seqmin', 'min_value', 'minimum_value').first.to_i
-      end
-
-      def max_for_sequence(sequence)
-        sequence.fetch_values('seqmax', 'max_value', 'maximum_value').first.to_i
+      def find_first(sequence, keys)
+        v = sequence.values_at(*keys)
+        v.compact![0]
       end
 
       def cycle_for_sequence(sequence)
-        sequence.fetch_values('seqcycle', 'is_cycled').first == 't' || sequence['cycle_option'] == 'YES'
+        find_first(sequence, %w[seqcycle is_cycled]) == 't' || sequence['cycle_option'] == 'YES'
       end
 
       def options_from_sequence(sequence, owner)
         {
-          increment: increment_for_sequence(sequence),
-          min: min_for_sequence(sequence),
-          max: max_for_sequence(sequence),
-          start: sequence['start_value'].to_i,
-          cache: sequence['cache_value'].to_i,
+          increment: find_first(sequence, ['seqincrement', :increment, 'increment']).to_i,
+          min: find_first(sequence, %w[seqmin min_value minimum_value]).to_i,
+          max: find_first(sequence, %w[seqmax max_value maximum_value]).to_i,
+          start: find_first(sequence, %w[seqstart start_value]).to_i,
+          cache: find_first(sequence, %w[seqcache cache_value]).to_i,
           cycle: cycle_for_sequence(sequence),
           owned_by: owned_by(owner),
           owner_is_primary_key: owner_is_primary_key(owner),
