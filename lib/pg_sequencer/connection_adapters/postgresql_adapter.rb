@@ -2,9 +2,9 @@
 
 module PgSequencer
   module ConnectionAdapters
-    # This module enhances ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
+    # This module enhances ActiveRecord::ConnectionAdapters::PostgresqlAdapter
     # https://github.com/rails/rails/blob/master/activerecord/lib/active_record/connection_adapters/postgresql_adapter.rb
-    module PostgreSQLAdapter
+    module PostgresqlAdapter
       # Example usage:
       #
       #   create_sequence "user_seq",
@@ -120,12 +120,12 @@ module PgSequencer
       # --------------+--------------------
       # relname       | some_seq
       def select_sequence_names
-        sql = <<-SQL.strip_heredoc
-              SELECT c.relname FROM pg_class c
-              WHERE c.relkind = 'S' ORDER BY c.relname ASC
+        sql = <<~SQL.squish
+          SELECT c.relname FROM pg_class c
+          WHERE c.relkind = 'S' ORDER BY c.relname ASC
         SQL
 
-        select_all(sql).map { |row| row['relname'] }
+        select_all(sql).pluck('relname')
       end
 
       # Values for a selected sequence:
@@ -151,15 +151,15 @@ module PgSequencer
       # column_name   | order_number
       # sch           | public
       def select_sequence_owners(sequence_name) # rubocop:disable Metrics/MethodLength
-        sql = <<-SQL.strip_heredoc
-              SELECT s.relname AS sequence_name, t.relname AS table_name, a.attname AS column_name, n.nspname AS sch
-              FROM pg_class s
-              JOIN pg_depend d ON d.objid = s.oid AND d.classid = 'pg_class'::regclass AND d.refclassid = 'pg_class'::regclass
-              JOIN pg_class t ON t.oid = d.refobjid
-              JOIN pg_namespace n ON n.oid = t.relnamespace
-              JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = d.refobjsubid
-              WHERE s.relkind = 'S' AND d.deptype = 'a'
-              AND s.relname = '#{sequence_name}'
+        sql = <<~SQL.squish
+          SELECT s.relname AS sequence_name, t.relname AS table_name, a.attname AS column_name, n.nspname AS sch
+          FROM pg_class s
+          JOIN pg_depend d ON d.objid = s.oid AND d.classid = 'pg_class'::regclass AND d.refclassid = 'pg_class'::regclass
+          JOIN pg_class t ON t.oid = d.refobjid
+          JOIN pg_namespace n ON n.oid = t.relnamespace
+          JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = d.refobjsubid
+          WHERE s.relkind = 'S' AND d.deptype = 'a'
+          AND s.relname = '#{sequence_name}'
         SQL
 
         select_all(sql).map do |row|

@@ -3,13 +3,17 @@
 require 'spec_helper'
 require 'support/active_record_mocks'
 
-describe PgSequencer::SchemaDumper do # rubocop:disable Metrics/BlockLength
+describe PgSequencer::SchemaDumper do
   let(:stream) { MockStream.new }
   let(:connection) { MockConnection.new(sequences) }
   let(:sequences) do
     %w[user_seq item_seq].map do |name|
       PgSequencer::SequenceDefinition.new(name, options)
     end
+  end
+
+  before do
+    MockSchemaDumper.dump(connection, stream)
   end
 
   context 'with all options' do
@@ -25,17 +29,18 @@ describe PgSequencer::SchemaDumper do # rubocop:disable Metrics/BlockLength
       }
     end
 
-    it 'outputs all sequences correctly' do
-      expected_output = <<-SCHEMA.strip_heredoc
-                        # Fake Schema Header
-                          create_sequence "item_seq", increment: 1, min: 1, max: 2000000, start: 1, cache: 5, cycle: true, owned_by: "table_name.column_name"
-                          create_sequence "user_seq", increment: 1, min: 1, max: 2000000, start: 1, cache: 5, cycle: true, owned_by: "table_name.column_name"
+    let(:expected_output) do
+      <<~SCHEMA
+        # Fake Schema Header
+          create_sequence "item_seq", increment: 1, min: 1, max: 2000000, start: 1, cache: 5, cycle: true, owned_by: "table_name.column_name"
+          create_sequence "user_seq", increment: 1, min: 1, max: 2000000, start: 1, cache: 5, cycle: true, owned_by: "table_name.column_name"
 
-                        # (No Tables)
-                        # Fake Schema Trailer
+        # (No Tables)
+        # Fake Schema Trailer
       SCHEMA
+    end
 
-      MockSchemaDumper.dump(connection, stream)
+    it 'outputs all sequences correctly' do
       expect(expected_output.strip).to eq(stream.to_s)
     end
   end
@@ -53,17 +58,18 @@ describe PgSequencer::SchemaDumper do # rubocop:disable Metrics/BlockLength
       }
     end
 
-    it 'outputs false for schema output' do
-      expected_output = <<-SCHEMA.strip_heredoc
-                        # Fake Schema Header
-                          create_sequence "item_seq", increment: 1, min: false, max: 2000000, start: 1, cache: 5, cycle: true, owned_by: "table_name.column_name"
-                          create_sequence "user_seq", increment: 1, min: false, max: 2000000, start: 1, cache: 5, cycle: true, owned_by: "table_name.column_name"
+    let(:expected_output) do
+      <<~SCHEMA
+        # Fake Schema Header
+          create_sequence "item_seq", increment: 1, min: false, max: 2000000, start: 1, cache: 5, cycle: true, owned_by: "table_name.column_name"
+          create_sequence "user_seq", increment: 1, min: false, max: 2000000, start: 1, cache: 5, cycle: true, owned_by: "table_name.column_name"
 
-                        # (No Tables)
-                        # Fake Schema Trailer
+        # (No Tables)
+        # Fake Schema Trailer
       SCHEMA
+    end
 
-      MockSchemaDumper.dump(connection, stream)
+    it 'outputs false for schema output' do
       expect(expected_output.strip).to eq(stream.to_s)
     end
   end

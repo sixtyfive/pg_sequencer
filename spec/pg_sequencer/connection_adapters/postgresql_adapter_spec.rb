@@ -2,7 +2,21 @@
 
 require 'spec_helper'
 
-describe PgSequencer::ConnectionAdapters::PostgreSQLAdapter do # rubocop:disable Metrics/BlockLength
+RSpec.shared_examples 'sequence options SQL' do |opts, expected|
+  it opts.to_s do
+    actual = dummy.sequence_options_sql(opts)
+    expect(actual).to eq(expected)
+  end
+end
+
+RSpec.shared_examples 'sequence more options SQL' do |more_options, expected|
+  it more_options.to_s do
+    actual = dummy.sequence_options_sql(options.merge(more_options))
+    expect(actual).to eq(expected)
+  end
+end
+
+describe PgSequencer::ConnectionAdapters::PostgresqlAdapter do
   let(:dummy) { Object.new.extend(described_class) }
   let(:options) do
     {
@@ -15,140 +29,91 @@ describe PgSequencer::ConnectionAdapters::PostgreSQLAdapter do # rubocop:disable
     }
   end
 
-  context 'generating sequence option SQL' do # rubocop:disable Metrics/BlockLength
-    it 'includes all options' do
+  describe '#sequence_options_sql' do
+    context 'with all options' do
       output = ' INCREMENT BY 1 MINVALUE 1 MAXVALUE 2000000 START WITH 1 CACHE 5 CYCLE OWNED BY table_name.column_name'
-      expect(dummy.sequence_options_sql(options.merge(start: 1))).to eq(output)
+      include_examples 'sequence more options SQL', { start: 1 }, output
     end
 
-    context 'for :increment' do
-      it "includes 'INCREMENT BY' in the SQL" do
-        expect(dummy.sequence_options_sql(increment: 1)).to eq(' INCREMENT BY 1')
-        expect(dummy.sequence_options_sql(increment: 2)).to eq(' INCREMENT BY 2')
-      end
-
-      it 'does not include the option if nil value specified' do
-        expect(dummy.sequence_options_sql(increment: nil)).to eq('')
-      end
+    describe ':increment' do
+      include_examples 'sequence options SQL', { increment: 1 }, ' INCREMENT BY 1'
+      include_examples 'sequence options SQL', { increment: 2 }, ' INCREMENT BY 2'
+      include_examples 'sequence options SQL', { increment: nil }, ''
     end
 
-    context 'for :min' do
-      it "includes 'MINVALUE' in the SQL if specified" do
-        expect(dummy.sequence_options_sql(min: 1)).to eq(' MINVALUE 1')
-        expect(dummy.sequence_options_sql(min: 2)).to eq(' MINVALUE 2')
-      end
-
-      it "does not include 'MINVALUE' in SQL if set to nil" do
-        expect(dummy.sequence_options_sql(min: nil)).to eq('')
-      end
-
-      it "sets 'NO MINVALUE' if :min specified as false" do
-        expect(dummy.sequence_options_sql(min: false)).to eq(' NO MINVALUE')
-      end
+    describe ':min' do
+      include_examples 'sequence options SQL', { min: 1 }, ' MINVALUE 1'
+      include_examples 'sequence options SQL', { min: 2 }, ' MINVALUE 2'
+      include_examples 'sequence options SQL', { min: nil }, ''
+      include_examples 'sequence options SQL', { min: false }, ' NO MINVALUE'
     end
 
-    context 'for :max' do
-      it "includes 'MAXVALUE' in the SQL if specified" do
-        expect(dummy.sequence_options_sql(max: 1)).to eq(' MAXVALUE 1')
-        expect(dummy.sequence_options_sql(max: 2)).to eq(' MAXVALUE 2')
-      end
-
-      it "does not include 'MAXVALUE' in SQL if set to nil" do
-        expect(dummy.sequence_options_sql(max: nil)).to eq('')
-      end
-
-      it "sets 'NO MAXVALUE' if :min specified as false" do
-        expect(dummy.sequence_options_sql(max: false)).to eq(' NO MAXVALUE')
-      end
+    describe ':max' do
+      include_examples 'sequence options SQL', { max: 1 }, ' MAXVALUE 1'
+      include_examples 'sequence options SQL', { max: 2 }, ' MAXVALUE 2'
+      include_examples 'sequence options SQL', { max: nil }, ''
+      include_examples 'sequence options SQL', { max: false }, ' NO MAXVALUE'
     end
 
-    context 'for :start' do
-      it "includes 'START WITH' in SQL if specified" do
-        expect(dummy.sequence_options_sql(start: 1)).to eq(' START WITH 1')
-        expect(dummy.sequence_options_sql(start: 2)).to eq(' START WITH 2')
-        expect(dummy.sequence_options_sql(start: 500)).to eq(' START WITH 500')
-      end
-
-      it "does not include 'START WITH' in SQL if specified as nil" do
-        expect(dummy.sequence_options_sql(start: nil)).to eq('')
-      end
+    describe ':start' do
+      include_examples 'sequence options SQL', { start: 1 }, ' START WITH 1'
+      include_examples 'sequence options SQL', { start: 2 }, ' START WITH 2'
+      include_examples 'sequence options SQL', { start: 500 }, ' START WITH 500'
+      include_examples 'sequence options SQL', { start: nil }, ''
+      include_examples 'sequence options SQL', { start: false }, ''
     end
 
-    context 'for :cache' do
-      it "includes 'CACHE' in SQL if specified" do
-        expect(dummy.sequence_options_sql(cache: 1)).to eq(' CACHE 1')
-        expect(dummy.sequence_options_sql(cache: 2)).to eq(' CACHE 2')
-        expect(dummy.sequence_options_sql(cache: 500)).to eq(' CACHE 500')
-      end
+    describe ':cache' do
+      include_examples 'sequence options SQL', { cache: 1 }, ' CACHE 1'
+      include_examples 'sequence options SQL', { cache: 2 }, ' CACHE 2'
+      include_examples 'sequence options SQL', { cache: 500 }, ' CACHE 500'
+      include_examples 'sequence options SQL', { cache: nil }, ''
+      include_examples 'sequence options SQL', { cache: false }, ''
     end
 
-    context 'for :cycle' do
-      it "includes 'CYCLE' option if specified" do
-        expect(dummy.sequence_options_sql(cycle: true)).to eq(' CYCLE')
-      end
-
-      it "includes 'NO CYCLE' option if set as false" do
-        expect(dummy.sequence_options_sql(cycle: false)).to eq(' NO CYCLE')
-      end
-
-      it "does not include 'CYCLE' statement if specified as nil" do
-        expect(dummy.sequence_options_sql(cycle: nil)).to eq('')
-      end
+    describe ':cycle' do
+      include_examples 'sequence options SQL', { cycle: true }, ' CYCLE'
+      include_examples 'sequence options SQL', { cycle: false }, ' NO CYCLE'
+      include_examples 'sequence options SQL', { cycle: nil }, ''
     end
 
-    context 'for :owned_by' do
-      it "includes 'OWNED BY table_name.column_name' in SQL if specified" do
-        expect(dummy.sequence_options_sql(owned_by: 'users.counter')).to eq(' OWNED BY users.counter')
-        expect(dummy.sequence_options_sql(owned_by: 'orders.number')).to eq(' OWNED BY orders.number')
-      end
-
-      it "does not include 'OWNED BY' in SQL if specified as false" do
-        expect(dummy.sequence_options_sql(owned_by: false)).to eq('')
-      end
-
-      it "does not include 'OWNED BY' in SQL if specified as nil" do
-        expect(dummy.sequence_options_sql(owned_by: nil)).to eq('')
-      end
+    describe ':owned_by' do
+      include_examples 'sequence options SQL', { owned_by: 'user.counter' }, ' OWNED BY user.counter'
+      include_examples 'sequence options SQL', { owned_by: 'orders.number' }, ' OWNED BY orders.number'
+      include_examples 'sequence options SQL', { owned_by: false }, ''
+      include_examples 'sequence options SQL', { owned_by: nil }, ''
     end
   end
 
-  context 'creating sequences' do
-    context 'without options' do
-      it 'generates the proper SQL' do
-        expect(dummy.create_sequence_sql('things')).to eq('CREATE SEQUENCE things')
-        expect(dummy.create_sequence_sql('blahs')).to eq('CREATE SEQUENCE blahs')
-      end
+  describe '#create_sequence_sql' do
+    context 'without options, generates the proper SQL' do
+      it { expect(dummy.create_sequence_sql('things')).to eq('CREATE SEQUENCE things') }
+      it { expect(dummy.create_sequence_sql('blahs')).to eq('CREATE SEQUENCE blahs') }
     end
 
-    context 'with options' do
-      it 'includes options at the end' do
-        output = 'CREATE SEQUENCE things INCREMENT BY 1 MINVALUE 1 MAXVALUE 2000000 START WITH 1 CACHE 5 CYCLE OWNED BY table_name.column_name'
-        expect(dummy.create_sequence_sql('things', options.merge(start: 1))).to eq(output)
-      end
+    context 'with options, includes options at the end' do
+      let(:output) { 'CREATE SEQUENCE things INCREMENT BY 1 MINVALUE 1 MAXVALUE 2000000 START WITH 1 CACHE 5 CYCLE OWNED BY table_name.column_name' }
+
+      it { expect(dummy.create_sequence_sql('things', options.merge(start: 1))).to eq(output) }
     end
   end
 
-  context 'altering sequences' do
-    context 'without options' do
-      it 'returns a blank SQL statement' do
-        expect(dummy.change_sequence_sql('things')).to eq('')
-        expect(dummy.change_sequence_sql('things', {})).to eq('')
-        expect(dummy.change_sequence_sql('things', nil)).to eq('')
-      end
+  describe '#change_sequence_sql' do
+    context 'without options, returns a blank SQL statement' do
+      it { expect(dummy.change_sequence_sql('things')).to eq('') }
+      it { expect(dummy.change_sequence_sql('things', {})).to eq('') }
+      it { expect(dummy.change_sequence_sql('things', nil)).to eq('') }
     end
 
-    context 'with options' do
-      it 'includes options at the end' do
-        output = 'ALTER SEQUENCE things INCREMENT BY 1 MINVALUE 1 MAXVALUE 2000000 RESTART WITH 1 CACHE 5 CYCLE OWNED BY table_name.column_name'
-        expect(dummy.change_sequence_sql('things', options.merge(restart: 1))).to eq(output)
-      end
+    context 'with options, includes options at the end' do
+      let(:output) { 'ALTER SEQUENCE things INCREMENT BY 1 MINVALUE 1 MAXVALUE 2000000 RESTART WITH 1 CACHE 5 CYCLE OWNED BY table_name.column_name' }
+
+      it { expect(dummy.change_sequence_sql('things', options.merge(restart: 1))).to eq(output) }
     end
   end
 
-  context 'dropping sequences' do
-    it 'generates the proper SQL' do
-      expect(dummy.drop_sequence_sql('users_seq')).to eq('DROP SEQUENCE users_seq')
-      expect(dummy.drop_sequence_sql('items_seq')).to eq('DROP SEQUENCE items_seq')
-    end
+  describe '#drop_sequence_sql' do
+    it { expect(dummy.drop_sequence_sql('users_seq')).to eq('DROP SEQUENCE users_seq') }
+    it { expect(dummy.drop_sequence_sql('items_seq')).to eq('DROP SEQUENCE items_seq') }
   end
 end
