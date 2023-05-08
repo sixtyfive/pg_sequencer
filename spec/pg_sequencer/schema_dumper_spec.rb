@@ -32,10 +32,10 @@ describe PgSequencer::SchemaDumper do
     let(:expected_output) do
       <<~SCHEMA
         # Fake Schema Header
+        # (No Tables)
           create_sequence "item_seq", increment: 1, min: 1, max: 2000000, start: 1, cache: 5, cycle: true, owned_by: "table_name.column_name"
           create_sequence "user_seq", increment: 1, min: 1, max: 2000000, start: 1, cache: 5, cycle: true, owned_by: "table_name.column_name"
 
-        # (No Tables)
         # Fake Schema Trailer
       SCHEMA
     end
@@ -61,10 +61,10 @@ describe PgSequencer::SchemaDumper do
     let(:expected_output) do
       <<~SCHEMA
         # Fake Schema Header
+        # (No Tables)
           create_sequence "item_seq", increment: 1, min: false, max: 2000000, start: 1, cache: 5, cycle: true, owned_by: "table_name.column_name"
           create_sequence "user_seq", increment: 1, min: false, max: 2000000, start: 1, cache: 5, cycle: true, owned_by: "table_name.column_name"
 
-        # (No Tables)
         # Fake Schema Trailer
       SCHEMA
     end

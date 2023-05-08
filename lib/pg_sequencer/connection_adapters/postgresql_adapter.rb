@@ -100,12 +100,12 @@ module PgSequencer
           owned_by = owner ? "#{owner[:table]}.#{owner[:column]}" : nil
 
           options = {
-            increment: sequence[:increment].to_i,
-            min: sequence['min_value'].to_i,
-            max: sequence['max_value'].to_i,
+            increment: (sequence[:increment] || sequence['increment']).to_i,
+            min: (sequence['min_value'] || sequence['minimum_value']).to_i,
+            max: (sequence['max_value'] || sequence['maximum_value']).to_i,
             start: sequence['start_value'].to_i,
             cache: sequence['cache_value'].to_i,
-            cycle: sequence['is_cycled'] == 't',
+            cycle: sequence['is_cycled'] == 't' || sequence['cycle_option'] == 'YES',
             owned_by: owned_by,
             owner_is_primary_key: owner_is_primary_key,
           }
@@ -128,7 +128,7 @@ module PgSequencer
         select_all(sql).pluck('relname')
       end
 
-      # Values for a selected sequence:
+      # DQL Values for a selected sequence (probably old):
       # --------------+--------------------
       # sequence_name | order_number_seq
       # last_value    | 7
@@ -140,8 +140,26 @@ module PgSequencer
       # log_cnt       | 26
       # is_cycled     | f
       # is_called     | t
+      #
+      # DDL
+      # -[ RECORD 1 ]-----------+----------------------------------------
+      # sequence_catalog        | fetching_development
+      # sequence_schema         | public
+      # sequence_name           | delete_mes_creation_ordering_serial_seq
+      # data_type               | bigint
+      # numeric_precision       | 64
+      # numeric_precision_radix | 2
+      # numeric_scale           | 0
+      # start_value             | 1
+      # minimum_value           | 1
+      # maximum_value           | 9223372036854775807
+      # increment               | 1
+      # cycle_option            | NO
+      #
       def select_sequence(sequence_name)
-        select_one("SELECT * FROM #{sequence_name}")
+        dql = select_one("SELECT * FROM #{sequence_name}")
+        ddl = select_one("SELECT * FROM information_schema.sequences where sequence_name='#{sequence_name}'")
+        dql.merge(ddl)
       end
 
       # Values for owners of a sequence:
