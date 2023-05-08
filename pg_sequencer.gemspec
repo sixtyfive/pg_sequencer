@@ -22,8 +22,11 @@ Gem::Specification.new do |spec|
 
   spec.required_ruby_version = '>= 3.0.0'
 
-  spec.add_dependency 'activerecord', '>= 3.0.0'
-  spec.add_dependency 'activesupport', '>= 3.0.0'
+  rails_ver = '>= 3.0.0'
+
+  spec.add_dependency 'activerecord', rails_ver
+  spec.add_dependency 'activesupport', rails_ver
+  spec.add_dependency 'railities', rails_ver
 
   spec.add_development_dependency 'bundler'
   spec.add_development_dependency 'pg'
