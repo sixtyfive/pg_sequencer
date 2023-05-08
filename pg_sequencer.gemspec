@@ -26,7 +26,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'activerecord', rails_ver
   spec.add_dependency 'activesupport', rails_ver
-  spec.add_dependency 'railities', rails_ver
+  spec.add_dependency 'railties', rails_ver
 
   spec.add_development_dependency 'bundler'
   spec.add_development_dependency 'pg'
