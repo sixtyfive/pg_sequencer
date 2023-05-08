@@ -5,8 +5,8 @@ module PgSequencer
   # https://github.com/rails/rails/blob/master/activerecord/lib/active_record/schema_dumper.rb
   module SchemaDumper
     def tables(stream)
-      sequences(stream)
       super(stream)
+      sequences(stream)
     end
 
   protected
