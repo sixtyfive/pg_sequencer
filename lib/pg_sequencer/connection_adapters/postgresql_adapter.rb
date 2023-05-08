@@ -92,29 +92,55 @@ module PgSequencer
         sql
       end
 
-      def sequences # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+      def sequences
         select_sequence_names.map do |sequence_name|
           sequence = select_sequence(sequence_name)
           owner = select_sequence_owners(sequence_name).first
-          owner_is_primary_key = owner && owner[:column] == primary_key(owner[:table])
-          owned_by = owner ? "#{owner[:table]}.#{owner[:column]}" : nil
 
-          options = {
-            increment: (sequence[:increment] || sequence['increment']).to_i,
-            min: (sequence['min_value'] || sequence['minimum_value']).to_i,
-            max: (sequence['max_value'] || sequence['maximum_value']).to_i,
-            start: sequence['start_value'].to_i,
-            cache: sequence['cache_value'].to_i,
-            cycle: sequence['is_cycled'] == 't' || sequence['cycle_option'] == 'YES',
-            owned_by: owned_by,
-            owner_is_primary_key: owner_is_primary_key,
-          }
+          options = options_from_sequence(sequence, owner)
 
           SequenceDefinition.new(sequence_name, options)
         end
       end
 
     protected
+
+      def owner_is_primary_key(owner)
+        owner && owner[:column] == primary_key(owner[:table])
+      end
+
+      def owned_by(owner)
+        owner ? "#{owner[:table]}.#{owner[:column]}" : nil
+      end
+
+      def increment_for_sequence(sequence)
+        sequence.fetch_values(:increment, 'increment').first.to_i
+      end
+
+      def min_for_sequence(sequence)
+        sequence.fetch_values('min_value', 'minimum_value').first.to_i
+      end
+
+      def max_for_sequence(sequence)
+        sequence.fetch_values('max_value', 'maximum_value').first.to_i
+      end
+
+      def cycle_for_sequence(sequence)
+        sequence['is_cycled'] == 't' || sequence['cycle_option'] == 'YES'
+      end
+
+      def options_from_sequence(sequence, owner)
+        {
+          increment: increment_for_sequence(sequence),
+          min: min_for_sequence(sequence),
+          max: max_for_sequence(sequence),
+          start: sequence['start_value'].to_i,
+          cache: sequence['cache_value'].to_i,
+          cycle: cycle_for_sequence(sequence),
+          owned_by: owned_by(owner),
+          owner_is_primary_key: owner_is_primary_key(owner),
+        }
+      end
 
       # Values for all sequences:
       # --------------+--------------------
