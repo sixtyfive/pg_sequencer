@@ -114,19 +114,19 @@ module PgSequencer
       end
 
       def increment_for_sequence(sequence)
-        sequence.fetch_values(:increment, 'increment').first.to_i
+        sequence.fetch_values('seqincrement', :increment, 'increment').first.to_i
       end
 
       def min_for_sequence(sequence)
-        sequence.fetch_values('min_value', 'minimum_value').first.to_i
+        sequence.fetch_values('seqmin', 'min_value', 'minimum_value').first.to_i
       end
 
       def max_for_sequence(sequence)
-        sequence.fetch_values('max_value', 'maximum_value').first.to_i
+        sequence.fetch_values('seqmax', 'max_value', 'maximum_value').first.to_i
       end
 
       def cycle_for_sequence(sequence)
-        sequence['is_cycled'] == 't' || sequence['cycle_option'] == 'YES'
+        sequence.fetch_values('seqcycle', 'is_cycled').first == 't' || sequence['cycle_option'] == 'YES'
       end
 
       def options_from_sequence(sequence, owner)
@@ -154,38 +154,12 @@ module PgSequencer
         select_all(sql).pluck('relname')
       end
 
-      # DQL Values for a selected sequence (probably old):
-      # --------------+--------------------
-      # sequence_name | order_number_seq
-      # last_value    | 7
-      # start_value   | 1
-      # increment_by  | 1
-      # max_value     | 9223372036854775807
-      # min_value     | 1
-      # cache_value   | 1
-      # log_cnt       | 26
-      # is_cycled     | f
-      # is_called     | t
-      #
-      # DDL
-      # -[ RECORD 1 ]-----------+----------------------------------------
-      # sequence_catalog        | fetching_development
-      # sequence_schema         | public
-      # sequence_name           | delete_mes_creation_ordering_serial_seq
-      # data_type               | bigint
-      # numeric_precision       | 64
-      # numeric_precision_radix | 2
-      # numeric_scale           | 0
-      # start_value             | 1
-      # minimum_value           | 1
-      # maximum_value           | 9223372036854775807
-      # increment               | 1
-      # cycle_option            | NO
-      #
       def select_sequence(sequence_name)
-        dql = select_one("SELECT * FROM #{sequence_name}")
-        ddl = select_one("SELECT * FROM information_schema.sequences where sequence_name='#{sequence_name}'")
-        dql.merge(ddl)
+        if postgresql_version > 100_000
+          select_one("SELECT * FROM pg_sequence WHERE seqrelid='#{sequence_name}'::regclass")
+        else
+          select_one("SELECT increment_by AS seqincrement, min_value AS seqmin, max_value AS seqmax, start_value AS seqstart, cache_value AS seqcache, is_cycled AS seqcycle FROM #{sequence_name}")
+        end
       end
 
       # Values for owners of a sequence:
