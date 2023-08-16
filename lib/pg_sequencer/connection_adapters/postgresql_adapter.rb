@@ -92,7 +92,6 @@ module PgSequencer
 
       def sequences
         select_sequence_names.map do |sequence_name|
-
           sequence = select_sequence(sequence_name)
           owner = select_sequence_owners(sequence_name).first
           owner_is_primary_key = owner && owner[:column] == primary_key(owner[:table])
@@ -120,8 +119,10 @@ module PgSequencer
       # relname       | some_seq
       def select_sequence_names
         sql = <<-SQL.strip_heredoc
-              SELECT c.relname FROM pg_class c
-              WHERE c.relkind = 'S' ORDER BY c.relname ASC
+              SELECT seq.relname FROM pg_class AS seq
+              JOIN pg_namespace ns ON (seq.relnamespace=ns.oid)
+              WHERE seq.relkind = 'S' AND NOT EXISTS (SELECT * FROM pg_depend WHERE objid=seq.oid AND deptype='a')
+              AND pg_table_is_visible(seq.oid) ORDER BY seq.relname;
               SQL
 
         select_all(sql).map { |row| row["relname"] }
@@ -226,3 +227,16 @@ module PgSequencer
     end
   end
 end
+<<<<<<< HEAD
+=======
+
+# todo: add JDBCAdapter?
+[:PostgreSQLAdapter].each do |adapter|
+  begin
+    ActiveRecord::ConnectionAdapters.const_get(adapter).class_eval do
+      include PgSequencer::ConnectionAdapters::PostgreSQLAdapter
+    end
+  rescue
+  end
+end
+>>>>>>> d5ae895e81b73a5f6b3587331026f3d69d54ceb2
