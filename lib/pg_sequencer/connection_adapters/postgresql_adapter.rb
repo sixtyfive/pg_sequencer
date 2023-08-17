@@ -227,8 +227,6 @@ module PgSequencer
     end
   end
 end
-<<<<<<< HEAD
-=======
 
 # todo: add JDBCAdapter?
 [:PostgreSQLAdapter].each do |adapter|
@@ -236,7 +234,7 @@ end
     ActiveRecord::ConnectionAdapters.const_get(adapter).class_eval do
       include PgSequencer::ConnectionAdapters::PostgreSQLAdapter
     end
-  rescue
+  rescue Exception => e
+    puts e
   end
 end
->>>>>>> d5ae895e81b73a5f6b3587331026f3d69d54ceb2
