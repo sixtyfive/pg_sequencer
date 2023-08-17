@@ -15,7 +15,8 @@ This fork aims to integrate as many of the forks off of the original codebase wh
 - ignore table primary keys
 - support for ruby 2.0+
 - support for rails 5.0+
-- CI via Travis (currently inoperational, PR welcome)
+- CI via Travis
+- tests working again (because some of them are out-commented ... PR welcome! :))
 - a lot of code cleanup by various people
 
 ## Installation
@@ -100,7 +101,7 @@ DROP SEQUENCE products_seq
 ## Caveats / Bugs
  
 * Listing all the sequences in a database creates n+1 queries (1 to get the names and n to describe each sequence).
-  Is there a way to fully describe all sequences in a database in one query? PRs welcome!
+  Is there a way to fully describe all sequences in a database in one query? PR welcome!
 * The `SET SCHEMA` fragment of the `ALTER` command is not implemented.
 * Oracle or other databases with sequence or sequence-like concepts are not supported and out of scope for this gem
 
