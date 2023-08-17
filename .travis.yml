@@ -1,4 +1,4 @@
-dist: jammy
+dist: focal
 language: ruby
 cache: bundler
 
@@ -10,3 +10,4 @@ before_install:
 
 script:
   - bundle exec rake
+
