@@ -1,22 +1,24 @@
-# pg_sequencer Gem
+# `pg_sequencer` Gem
 
 [![Build Status](https://travis-ci.org/sixtyfive/pg_sequencer.svg?branch=master)](https://travis-ci.org/sixtyfive/pg_sequencer)
 
-The `pg_sequencer` gem adds methods to your migrations to allow you to create, drop and change sequence objects in PostgreSQL. It also dumps sequences to `schema.rb` by extending `ActiveRecord::SchemaDumper`.
+The `pg_sequencer` gem adds methods to your migrations to allow you to create, drop and change sequence objects in PostgreSQL. It also dumps sequences to `schema.rb` by extending `ActiveRecord::SchemaDumper`. Originally tested with postgres 9.0.4 and was said to work down to 8.1 at that time. Currently known-working with postgres up to 15.0 (adjustments were made at the time of postgres 10.0).
 
 ## Installation
 
-Requires `ruby` version 2.3+.
+Requires `ruby` version 2.7.8+.
 
 Add this to your Gemfile:
 
-    gem 'pg_sequencer'
+```sh
+gem 'pg_sequencer', github: 'sixtyfive/pg_sequencer'
+```
 
 ## API
 
 pg_sequencer adds the following methods to migrations:
 
-```
+```ruby
 create_sequence(sequence_name, options)
 change_sequence(sequence_name, options)
 drop_sequence(sequence_name)
@@ -26,7 +28,7 @@ The methods closely mimic the syntax of the PostgreSQL for `CREATE SEQUENCE`, `D
 
 ## Options
 
-For create_sequence and change_sequence, all options are the same, except `create_sequence` will look for `:start` or `:start_with`, and
+For `create_sequence` and `change_sequence`, all options are the same, except `create_sequence` will look for `:start` or `:start_with`, and
 `change_sequence` will look for `:restart` or `:restart_with`.
 
 * `:increment`/`:increment_by` (integer) - The value to increment the sequence by.
@@ -37,53 +39,65 @@ For create_sequence and change_sequence, all options are the same, except `creat
 * `:cache` (integer) - The number of values the sequence should cache.
 * `:cycle` (boolean) - Whether the sequence should cycle. Generated at "CYCLE" or "NO CYCLE"
 
-## Create a sequence
+## Creating a sequence
 
-Create a sequence called `user_seq`, incrementing by 1, min of 1, max of 2000000, starts at 1, caches 10 values, and disallows cycles:
+To create a sequence called `user_seq`, incrementing by 1, min of 1, max of 2000000, starts at 1, caches 10 values, and disallows cycles:
 
-    create_sequence "user_seq",
-      increment: 1,
-      min: 1,
-      max: 2000000,
-      start: 1,
-      cache: 10,
-      cycle: false
-
-This is equivalent to:
-
-    CREATE SEQUENCE user_seq INCREMENT BY 1 MIN 1 MAX 2000000 START 1 CACHE 10 NO CYCLE
-
-## Alter a sequence
-
-    change_sequence "accounts_seq", restart_with: 50
+```ruby
+create_sequence "user_seq",
+  increment: 1,
+  min: 1,
+  max: 2000000,
+  start: 1,
+  cache: 10,
+  cycle: false
+```
 
 This is equivalent to:
 
-    ALTER SEQUENCE accounts_seq RESTART WITH 50
+```sql
+CREATE SEQUENCE user_seq INCREMENT BY 1 MIN 1 MAX 2000000 START 1 CACHE 10 NO CYCLE
+```
 
-## Remove a sequence
+## Altering a sequence
 
-    drop_sequence "products_seq"
+```ruby
+change_sequence "accounts_seq", restart_with: 50
+```
 
 This is equivalent to:
 
-    DROP SEQUENCE products_seq
+```sql
+ALTER SEQUENCE accounts_seq RESTART WITH 50
+```
+
+## Removing a sequence
+
+```ruby
+drop_sequence "products_seq"
+```
+
+This is equivalent to:
+
+```sql
+DROP SEQUENCE products_seq
+```
 
 ## Caveats / Bugs
-
-* Tested with postgres 9.0.4, should work down to 8.1.
-* Listing all the sequences in a database creates n+1 queries (1 to get the names and n to describe each sequence). Is there a way to fully describe all sequences in a database in one query?
-* The "SET SCHEMA" fragment of the ALTER command is not implemented.
-* Oracle/other databases not supported
+ 
+* Listing all the sequences in a database creates n+1 queries (1 to get the names and n to describe each sequence).
+  Is there a way to fully describe all sequences in a database in one query? PRs welcome!
+* The `SET SCHEMA` fragment of the `ALTER` command is not implemented.
+* Oracle or other databases with sequence or sequence-like concepts are not supported and out of scope for this gem
 
 ## References
 
-* http://www.postgresql.org/docs/9.6/static/sql-createsequence.html
-* http://www.postgresql.org/docs/9.6/static/sql-altersequence.html
-* http://www.alberton.info/postgresql_meta_info.html
+* [CREATE SEQUENCE](https://www.postgresql.org/docs/current/sql-createsequence.html)
+* [ALTER SEQUENCE](https://www.postgresql.org/docs/current/sql-altersequence.html)
+* [Extracting Meta Information From PostgreSQL](http://www.alberton.info/postgresql_meta_info.html)
 
 ## Credits
 
 The original version of this gem was written by Tony Collen from [Code42](https://www.code42.com).
 
-The design of pg_sequencer is heavily influenced by Matthew Higgins' [foreigner](https://github.com/matthuhiggins/foreigner) gem.
+The design of `pg_sequencer` is heavily influenced by Matthew Higgins' [foreigner](https://github.com/matthuhiggins/foreigner) gem.
