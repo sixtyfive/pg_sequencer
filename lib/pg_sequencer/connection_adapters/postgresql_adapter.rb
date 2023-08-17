@@ -118,13 +118,12 @@ module PgSequencer
       # --------------+--------------------
       # relname       | some_seq
       def select_sequence_names
-        sql = <<-SQL.strip_heredoc
+        sql = <<~SQL
               SELECT seq.relname FROM pg_class AS seq
               JOIN pg_namespace ns ON (seq.relnamespace=ns.oid)
               WHERE seq.relkind = 'S' AND NOT EXISTS (SELECT * FROM pg_depend WHERE objid=seq.oid AND deptype='a')
               AND pg_table_is_visible(seq.oid) ORDER BY seq.relname;
               SQL
-
         select_all(sql).map { |row| row["relname"] }
       end
 
@@ -155,7 +154,7 @@ module PgSequencer
       # column_name   | order_number
       # sch           | public
       def select_sequence_owners(sequence_name)
-        sql = <<-SQL.strip_heredoc
+        sql = <<~SQL
               SELECT s.relname AS sequence_name, t.relname AS table_name, a.attname AS column_name, n.nspname AS sch
               FROM pg_class s
               JOIN pg_depend d ON d.objid = s.oid AND d.classid = 'pg_class'::regclass AND d.refclassid = 'pg_class'::regclass
@@ -228,13 +227,4 @@ module PgSequencer
   end
 end
 
-# todo: add JDBCAdapter?
-[:PostgreSQLAdapter].each do |adapter|
-  begin
-    ActiveRecord::ConnectionAdapters.const_get(adapter).class_eval do
-      include PgSequencer::ConnectionAdapters::PostgreSQLAdapter
-    end
-  rescue Exception => e
-    puts e
-  end
-end
+include PgSequencer::ConnectionAdapters::PostgreSQLAdapter
