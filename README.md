@@ -20,7 +20,7 @@ This fork aims to integrate as many of the forks off of the original codebase wh
 
 ## Installation
 
-Requires `ruby` version 2.7.8+ and `rails` version 6.1+.
+Requires `ruby` version 2.7.8+. Will install `activesupport` and `activerecord` >=6.1.0 as well as pg>=1.5.3.
 
 Add this to your Gemfile:
 
