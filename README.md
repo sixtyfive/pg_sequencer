@@ -4,9 +4,23 @@
 
 The `pg_sequencer` gem adds methods to your migrations to allow you to create, drop and change sequence objects in PostgreSQL. It also dumps sequences to `schema.rb` by extending `ActiveRecord::SchemaDumper`. Originally tested with postgres 9.0.4 and was said to work down to 8.1 at that time. Currently known-working with postgres up to 15.0 (adjustments were made at the time of postgres 10.0).
 
+This fork aims to integrate as many of the forks off of the original codebase which was abandoned in 2018. For a better starting point, it was itself forked off of @tablexi's fork, though. So far, it features the following enhancements:
+
+- `db:migrate` no longer pollutes `schema.rb` with sequences already assigned
+- `db:migrate` no longer resets existing sequences' `max` value to `0`
+- `.tool-versions` file for use with ASDF
+- write dumped create sequence statements _above_ tables in `schema.rb`
+- `select_sequence` argument
+- `owned_by` option
+- ignore table primary keys
+- support for ruby 2.0+
+- support for rails 5.0+
+- CI via Travis (currently inoperational, PR welcome)
+- a lot of code cleanup by various people
+
 ## Installation
 
-Requires `ruby` version 2.7.8+.
+Requires `ruby` version 2.7.8+ and `rails` version 6.1+.
 
 Add this to your Gemfile:
 
@@ -16,7 +30,7 @@ gem 'pg_sequencer', github: 'sixtyfive/pg_sequencer'
 
 ## API
 
-pg_sequencer adds the following methods to migrations:
+`pg_sequencer` adds the following methods to migrations:
 
 ```ruby
 create_sequence(sequence_name, options)
@@ -98,6 +112,6 @@ DROP SEQUENCE products_seq
 
 ## Credits
 
-The original version of this gem was written by Tony Collen from [Code42](https://www.code42.com).
+The original version of this gem was written by Tony Collen from [Code42](https://www.code42.com). This repository may include commits by authors found in the forks of GitHub users @zenedge, @wwinters, @thinkthroughmath, @steakknife, @offtop, @guilleva, @sinfin, @emilford, @cwinters, @charitywater, @brunopascoa, @bprotas, @didacte, @achempion, @buyapowa, @mindvision and @jhun-magatas and is being kept around by me, @sixtyfive. I currently lack the time to properly maintain this but will gratefully respond to PRs. Looking through those forks, it seemed to me like a lot of work has happened during the time since Code42 posted their abandonment notice and I feel it'd be lovely if not all of that was lost :)
 
 The design of `pg_sequencer` is heavily influenced by Matthew Higgins' [foreigner](https://github.com/matthuhiggins/foreigner) gem.
