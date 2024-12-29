@@ -11,6 +11,8 @@ module PgSequencer
     protected
 
     def sequences(stream)
+      return unless @connection.is_a?(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter)
+
       # Filter out sequences that are owned by table primary keys since rails
       # already creates those for us.
       unmanaged_sequences = @connection.sequences.select do |sequence|
